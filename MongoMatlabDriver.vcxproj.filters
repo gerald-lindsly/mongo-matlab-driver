@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="mongo-c-driver-src">
+      <UniqueIdentifier>{403771e3-da00-4813-878f-57b2d244a62e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="mongo-c-driver-src\bson.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="DllMain.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="api_bson.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mongo-c-driver-src\numbers.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongo-c-driver-src\encoding.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongo-c-driver-src\gridfs.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongo-c-driver-src\md5.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongo-c-driver-src\mongo.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongo-c-driver-src\net.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="mongo-c-driver-src\bson.h">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClInclude>
+    <ClInclude Include="MongoMatlabDriver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mongo-c-driver-src\encoding.h">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongo-c-driver-src\gridfs.h">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongo-c-driver-src\md5.h">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongo-c-driver-src\mongo.h">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongo-c-driver-src\net.h">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClInclude>
+    <ClInclude Include="mongo-c-driver-src\platform.h">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="BsonBuffer.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="MongoStart.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="MongoStop.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Bson.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="mongo-c-driver-src\README.md">
+      <Filter>mongo-c-driver-src</Filter>
+    </None>
+  </ItemGroup>
+</Project>
