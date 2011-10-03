@@ -1,23 +1,20 @@
 classdef Bson
     properties
-        h = libpointer
+        h = libpointer('bson_Ptr')
     end
 
     methods
-        function b = Bson(h)
-            b.h = h
-        end
-
         function s = size(b)
-            s = calllib('MongoMatlabDriver', 'mongo_bson_size', b.h)
+            s = calllib('MongoMatlabDriver', 'mongo_bson_size', b.h);
         end
 
-        function display(b)
-
+        function i = iterator(b)
+            i = BsonIterator(b)
         end
 
         function clear(b)
-            clear b.h
+            calllib('MongoMatlabDriver', 'mongo_bson_free', b.h);
+            clear b.h;
         end
 
     end

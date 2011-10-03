@@ -84,5 +84,17 @@
     <None Include="mongo-c-driver-src\README.md">
       <Filter>mongo-c-driver-src</Filter>
     </None>
+    <None Include="BsonIterator.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="MongoTest.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="BsonType.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="BsonOID.m">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

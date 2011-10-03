@@ -1,3 +1,3 @@
-function [void] = MongoStop()
-    unloadlibrary('MongoMatlabDriver')
+function MongoStop()
+    unloadlibrary('MongoMatlabDriver');
 end
