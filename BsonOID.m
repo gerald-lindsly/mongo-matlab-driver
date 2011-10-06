@@ -12,7 +12,7 @@ classdef BsonOID
             elseif nargin ~= 1
                 error('BsonOID:BsonOID', 'Expected 0 or 1 parameters');
             else
-                parm = varargin{1}
+                parm = varargin{1};
                 if isa(parm, 'uint8')
                     if numel(parm) ~= 12
                         error('BsonOID:BsonOID', 'Expected a 12-byte uint8 array');

@@ -232,8 +232,11 @@
   <ItemGroup>
     <None Include="Bson.m" />
     <None Include="BsonBuffer.m" />
+    <None Include="BsonCodeWScope.m" />
     <None Include="BsonIterator.m" />
     <None Include="BsonOID.m" />
+    <None Include="BsonRegex.m" />
+    <None Include="BsonTimestamp.m" />
     <None Include="BsonType.m" />
     <None Include="mongo-c-driver-src\README.md" />
     <None Include="MongoStart.m" />

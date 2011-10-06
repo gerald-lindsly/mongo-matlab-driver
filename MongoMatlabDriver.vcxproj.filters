@@ -96,5 +96,14 @@
     <None Include="BsonOID.m">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="BsonRegex.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="BsonCodeWScope.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="BsonTimestamp.m">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -1,10 +1,11 @@
 classdef BsonIterator
     properties
-        h = libpointer('bson_iterator_Ptr')
+        h
     end
 
     methods
         function i = BsonIterator(b)
+            i.h = libpointer('bson_iterator_Ptr');
             if strcmp(class(b), 'Bson')
                 calllib('MongoMatlabDriver', 'mongo_bson_iterator_create', b.h, i.h);
             else
@@ -26,11 +27,11 @@ classdef BsonIterator
 
         function v = value(i)
             switch (i.type)
-                case {BsonType.EOO, BsonType.UNDEFINED}
+                case {BsonType.EOO, BsonType.UNDEFINED, BsonType.NULL}
                     v = [];
                 case BsonType.DOUBLE
                     v = calllib('MongoMatlabDriver', 'mongo_bson_iterator_double', i.h);
-                case BsonType.STRING
+                case {BsonType.STRING, BsonType.SYMBOL}
                     v = calllib('MongoMatlabDriver', 'mongo_bson_iterator_string', i.h);
                 case BsonType.BINDATA
                     s = calllib('MongoMatlabDriver', 'mongo_bson_iterator_bin_len', i.h);
@@ -42,9 +43,22 @@ classdef BsonIterator
                     v = zeros([1, 12], 'uint8');
                     p = libpointer('uint8Ptr', v);
                     calllib('MongoMatlabDriver', 'mongo_bson_iterator_oid', i.h, p);
-                    p.Value
-                    class(p.Value)
                     v = BsonOID(p.Value);
+                case BsonType.BOOL
+                    v = (calllib('MongoMatlabDriver', 'mongo_bson_iterator_bool', i.h) ~= 0);
+                case BsonType.DATE
+                    v =  719529 + calllib('MongoMatlabDriver', 'mongo_bson_iterator_date', i.h) / (1000 * 60 * 60 * 24);
+                case BsonType.REGEX
+                    v = BsonRegex(calllib('MongoMatlabDriver', 'mongo_bson_iterator_regex', i.h), ...
+                                  calllib('MongoMatlabDriver', 'mongo_bson_iterator_regex_opts', i.h));
+                case BsonType.DBREF
+                    error('BsonIterator:value', 'No support for deprecated DBREF');
+                case BsonType.CODE
+                    v = calllib('MongoMatlabDriver', 'mongo_bson_iterator_code', i.h);
+                case BsonType.CODEWSCOPE
+                    scope = Bson();
+                    calllib('MongoMatlabDriver', 'mongo_bson_iterator_code_scope', i.h, scope.h);
+                    v = BsonCodeWScope(calllib('MongoMatlabDriver', 'mongo_bson_iterator_code', i.h), scope);
                 case BsonType.INT
                     v = int32(calllib('MongoMatlabDriver', 'mongo_bson_iterator_int', i.h));
                 case BsonType.LONG

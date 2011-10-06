@@ -53,6 +53,41 @@ EXPORT int mongo_bson_buffer_append_oid(struct bson_buffer* b, char* name, void*
 }
 
 
+EXPORT int  mongo_bson_buffer_append_bool(struct bson_buffer* b, char *name, int value) {
+    return (bson_append_bool((bson*) b, name, value) == BSON_OK);
+}
+
+
+EXPORT int  mongo_bson_buffer_append_date(struct bson_buffer* b, char *name, int64_t value) {
+    return (bson_append_date((bson*) b, name, value) == BSON_OK);
+}
+
+
+EXPORT int  mongo_bson_buffer_append_null(struct bson_buffer* b, char *name) {
+    return (bson_append_null((bson*) b, name) == BSON_OK);
+}
+
+
+EXPORT int  mongo_bson_buffer_append_regex(struct bson_buffer* b, char *name, char* pattern, char* options) {
+    return (bson_append_regex((bson*) b, name, pattern, options) == BSON_OK);
+}
+
+
+EXPORT int  mongo_bson_buffer_append_code(struct bson_buffer* b, char *name, char* value) {
+    return (bson_append_code((bson*) b, name, value) == BSON_OK);
+}
+
+
+EXPORT int  mongo_bson_buffer_append_symbol(struct bson_buffer* b, char *name, char* value) {
+    return (bson_append_symbol((bson*) b, name, value) == BSON_OK);
+}
+
+
+EXPORT int  mongo_bson_buffer_append_codewscope(struct bson_buffer* b, char *name, char* code, struct bson_* scope) {
+    return (bson_append_code_w_scope((bson*) b, name, code, (bson*) scope) == BSON_OK);
+}
+
+
 EXPORT int mongo_bson_buffer_start_object(struct bson_buffer* b, char* name) {
     return (bson_append_start_object((bson*) b, name) == BSON_OK);
 }
@@ -158,3 +193,36 @@ EXPORT void mongo_bson_oid_from_string(char* s, void* oid) {
 EXPORT void mongo_bson_iterator_oid(struct bson_iterator_* i, void* oid) {
     memcpy(oid, bson_iterator_oid((bson_iterator*) i), 12);
 }
+
+
+EXPORT int mongo_bson_iterator_bool(struct bson_iterator_* i) {
+    return (bson_iterator_bool((bson_iterator*) i) != 0);
+}
+
+
+EXPORT int64_t  mongo_bson_iterator_date(struct bson_iterator_* i) {
+    return bson_iterator_date((bson_iterator*) i);
+}
+
+
+EXPORT const char* mongo_bson_iterator_regex(struct bson_iterator_* i) {
+    return bson_iterator_regex((bson_iterator*) i);
+}
+
+
+EXPORT const char* mongo_bson_iterator_regex_opts(struct bson_iterator_* i) {
+    return bson_iterator_regex_opts((bson_iterator*) i);
+}
+
+
+EXPORT const char* mongo_bson_iterator_code(struct bson_iterator_* i) {
+    return bson_iterator_code((bson_iterator*) i);
+}
+
+
+EXPORT void mongo_bson_iterator_code_scope(struct bson_iterator_* i, struct bson_buffer** b) {
+    bson* _b = (bson*)malloc(sizeof(bson));
+    bson_iterator_code_scope((bson_iterator*) i, _b);
+    *b = (struct bson_buffer*)_b;
+}
+
