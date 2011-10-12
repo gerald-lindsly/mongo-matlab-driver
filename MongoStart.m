@@ -1,5 +1,5 @@
 function MongoStart()
     if ~libisloaded('MongoMatlabDriver')
-        loadlibrary('MongoMatlabDriver', 'MongoMatlabDriver.h');
+        [notfound, warnings] = loadlibrary('MongoMatlabDriver', 'MongoMatlabDriver.h');
     end
 end

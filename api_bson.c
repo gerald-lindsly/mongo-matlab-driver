@@ -2,6 +2,23 @@
 #include "bson.h"
 #include <malloc.h>
 
+#include <mex.h>
+#include <matrix.h>
+
+#define MAXDIM 20
+
+const char* numstr(int i) {
+    extern const char bson_numstrs[1000][4];
+    if (i < 1000)
+        return bson_numstrs[i];
+    else {
+        static char s[20];
+        sprintf(s, "%d", i);
+        return s;
+    }
+}
+
+
 EXPORT void mongo_bson_buffer_create(struct bson_buffer** b)
 {
     bson* _b = (bson*)malloc(sizeof(bson));
@@ -11,9 +28,10 @@ EXPORT void mongo_bson_buffer_create(struct bson_buffer** b)
 
 
 EXPORT void mongo_bson_buffer_to_bson(struct bson_buffer** b, struct bson_** out) {
-    bson_finish((bson*) *b);
-    *out = (struct bson_*) *b;
-    *b = 0;
+    bson* _b = (bson*)*b;
+    bson_finish(_b);
+    *out = (struct bson_*) _b;
+    //*b = 0;
 }
 
 
@@ -23,23 +41,165 @@ EXPORT void mongo_bson_free(struct bson_* b) {
 }
 
 
-EXPORT int mongo_bson_buffer_append_int(struct bson_buffer* b, char* name, int value) {
-    return (bson_append_int((bson*) b, name, value) == BSON_OK);
+EXPORT void mongo_bson_buffer_free(struct bson_buffer* b) {
+    bson_destroy((bson*)b);
+    free(b);
 }
 
 
-EXPORT int mongo_bson_buffer_append_long(struct bson_buffer* b, char* name, int64_t value) {
-    return (bson_append_long((bson*) b, name, value) == BSON_OK);
+static void reverse(mwSize* p, mwSize len) {
+    mwSize* q = p + len - 1;
+    mwSize t;
+    while (p < q) {
+        t = *p;
+        *p = *q;
+        *q = t;
+        p++, q--;
+    }
+}
+
+
+static int mongo_bson_buffer_append_complex(struct bson_buffer* b, const char* name, double r, double i) {
+    bson* _b = (bson*) b;
+    return (bson_append_start_object(_b, name) == BSON_OK) &&
+           (bson_append_double(_b, "r", r) == BSON_OK) && 
+           (bson_append_double(_b, "i", i) == BSON_OK) && 
+           (bson_append_finish_object(_b) == BSON_OK);
+}
+
+
+EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray* value) {
+    size_t numel = mxGetNumberOfElements(value);
+    mxClassID cls = mxGetClassID(value);
+    bson* _b = (bson*)b;
+    mwSize i, j;
+    mwSize dims[MAXDIM];
+    mwSize ijk[MAXDIM];
+    mwSize sizes[MAXDIM];
+    mwSize ndims;
+    const mwSize *odims;
+    char* p;
+    int depth = 0;
+    int success;
+    if (numel == 1) {
+        switch (cls) {
+        case mxLOGICAL_CLASS:
+            return (bson_append_bool(_b, name, ((char*)mxGetData(value))[0]) == BSON_OK);
+        case mxDOUBLE_CLASS:
+            if (mxIsComplex(value))
+                return mongo_bson_buffer_append_complex(b, name, mxGetPr(value)[0], mxGetPi(value)[0]);
+            else
+                return (bson_append_double(_b, name, mxGetPr(value)[0]) == BSON_OK);
+        case mxSINGLE_CLASS:
+            return (bson_append_double(_b, name, ((float*)mxGetData(value))[0]) == BSON_OK);
+        case mxINT8_CLASS:
+            return (bson_append_int(_b, name, ((signed char*)mxGetData(value))[0]) == BSON_OK);
+        case mxUINT8_CLASS:
+            return (bson_append_int(_b, name, ((unsigned char*)mxGetData(value))[0]) == BSON_OK);
+        case mxINT16_CLASS:
+            return (bson_append_int(_b, name, ((short*)mxGetData(value))[0]) == BSON_OK);
+        case mxUINT16_CLASS:
+            return (bson_append_int(_b, name, ((unsigned short*)mxGetData(value))[0]) == BSON_OK);
+        case mxINT32_CLASS:
+            return (bson_append_int(_b, name, ((int*)mxGetData(value))[0]) == BSON_OK);
+        case mxUINT32_CLASS:
+            return (bson_append_int(_b, name, ((unsigned int*)mxGetData(value))[0]) == BSON_OK);
+        case mxINT64_CLASS: ;
+        case mxUINT64_CLASS:
+            return (bson_append_long(_b, name, ((int64_t*)mxGetData(value))[0]) == BSON_OK);
+        default:
+            return 0;
+        }
+    }
+    success = (bson_append_start_array(_b, name) == BSON_OK);
+    odims = mxGetDimensions(value);
+    ndims = mxGetNumberOfDimensions(value);
+    memcpy(dims, odims, ndims*sizeof(mwSize));
+    if (ndims > 1)
+        reverse(dims, ndims);
+    i = ndims;
+    j = 1;
+    do {
+        i--;
+        sizes[i] = j;
+        j *= dims[i];
+    } while (i > 0);
+    if (ndims > 1) {
+        /* reverse row and columns */
+        j = dims[ndims-1];
+        dims[ndims-1] = dims[ndims-2];
+        dims[ndims-2] = j;
+        j = sizes[ndims-1];
+        sizes[ndims-1] = sizes[ndims-2];
+        sizes[ndims-2] = j;
+    }
+    if (ndims == 2 && dims[1] == 1)
+        ndims--;
+    memset(ijk, 0, ndims * sizeof(mwSize));
+    p = (char*)mxGetData(value);
+    while (success && depth >= 0) {
+        if (ijk[depth] < dims[depth]) {
+            const char* num = numstr((int)(ijk[depth]++));
+            if (depth < ndims - 1) {
+                depth++;
+                success = (bson_append_start_array(_b, num) == BSON_OK);
+            }
+            else {
+                i = 0;
+                for (j = 0; j < ndims; j++)
+                    i += (ijk[j]-1) * sizes[j];
+                switch (cls) {
+                case mxLOGICAL_CLASS:
+                    success = (bson_append_bool(_b, num, ((char*)mxGetData(value))[i]) == BSON_OK);
+                    break;
+                case mxDOUBLE_CLASS:
+                    if (mxIsComplex(value))
+                        success = mongo_bson_buffer_append_complex(b, num, mxGetPr(value)[i], mxGetPi(value)[i]);
+                    else
+                        success = (bson_append_double(_b, num, mxGetPr(value)[i]) == BSON_OK);
+                    break;
+                case mxSINGLE_CLASS:
+                    success = (bson_append_double(_b, num, ((float*)mxGetData(value))[i]) == BSON_OK);
+                    break;
+                case mxINT8_CLASS:
+                    success = (bson_append_int(_b, num, ((signed char*)mxGetData(value))[i]) == BSON_OK);
+                    break;
+                case mxUINT8_CLASS:
+                    success = (bson_append_int(_b, num, ((unsigned char*)mxGetData(value))[i]) == BSON_OK);
+                    break;
+                case mxINT16_CLASS:
+                    success = (bson_append_int(_b, num, ((short*)mxGetData(value))[i]) == BSON_OK);
+                    break;
+                case mxUINT16_CLASS:
+                    success = (bson_append_int(_b, num, ((unsigned short*)mxGetData(value))[i]) == BSON_OK);
+                    break;
+                case mxINT32_CLASS:
+                    success = (bson_append_int(_b, num, ((int*)mxGetData(value))[i]) == BSON_OK);
+                    break;
+                case mxUINT32_CLASS:
+                    success = (bson_append_int(_b, num, ((unsigned int*)mxGetData(value))[i]) == BSON_OK);
+                    break;
+                case mxINT64_CLASS: ;
+                case mxUINT64_CLASS:
+                    success = (bson_append_long(_b, num, ((int64_t*)mxGetData(value))[i]) == BSON_OK);
+                    break;
+                default:
+                    return 0;
+                }
+            }
+        }
+        else {
+            ijk[depth] = 0;
+            success = (bson_append_finish_object(_b) == BSON_OK);
+            depth--;
+        }
+    }
+    return success;
 }
 
 
 EXPORT int mongo_bson_buffer_append_string(struct bson_buffer* b, char* name, char* value) {
     return (bson_append_string((bson*) b, name, value) == BSON_OK);
-}
-
-
-EXPORT int mongo_bson_buffer_append_double(struct bson_buffer* b, char* name, double value) {
-    return (bson_append_double((bson*) b, name, value) == BSON_OK);
 }
 
 
@@ -50,11 +210,6 @@ EXPORT int mongo_bson_buffer_append_binary(struct bson_buffer* b, char* name, in
 
 EXPORT int mongo_bson_buffer_append_oid(struct bson_buffer* b, char* name, void* value) {
     return (bson_append_oid((bson*) b, name, (bson_oid_t*) value) == BSON_OK);
-}
-
-
-EXPORT int  mongo_bson_buffer_append_bool(struct bson_buffer* b, char *name, int value) {
-    return (bson_append_bool((bson*) b, name, value) == BSON_OK);
 }
 
 
@@ -98,14 +253,35 @@ EXPORT int mongo_bson_buffer_finish_object(struct bson_buffer* b) {
 }
 
 
+EXPORT int mongo_bson_buffer_start_array(struct bson_buffer* b, char* name) {
+    return (bson_append_start_array((bson*) b, name) == BSON_OK);
+}
+
+
 EXPORT int mongo_bson_size(struct bson_* b) {
     return bson_size((bson*) b);
+}
+
+
+EXPORT int  mongo_bson_buffer_size(struct bson_buffer* b) {
+    bson* _b = (bson*)b;
+    return _b->cur - _b->data + 1;
 }
 
 
 EXPORT void mongo_bson_iterator_create(struct bson_* b, struct bson_iterator_** i) {
     bson_iterator* _i = (bson_iterator*)malloc(sizeof(bson_iterator));
     bson_iterator_init(_i, (bson*) b);
+    *i = (struct bson_iterator_*)_i;
+}
+
+
+EXPORT void mongo_bson_find(struct bson_* b, char* name, struct bson_iterator_** i) {
+    bson_iterator* _i = (bson_iterator*)malloc(sizeof(bson_iterator));
+    if (bson_find(_i, (bson*) b, name) == BSON_EOO) {
+        free(_i);
+        _i = 0;
+    }
     *i = (struct bson_iterator_*)_i;
 }
 
@@ -225,4 +401,220 @@ EXPORT void mongo_bson_iterator_code_scope(struct bson_iterator_* i, struct bson
     bson_iterator_code_scope((bson_iterator*) i, _b);
     *b = (struct bson_buffer*)_b;
 }
+
+struct Rcomplex {
+    double r;
+    double i;
+};
+
+
+int _iterator_getComplex(bson_iterator* iter, struct Rcomplex* z) {
+    bson_iterator sub;
+    if (bson_iterator_type(iter) != BSON_OBJECT)
+        return 0;
+    bson_iterator_subiterator(iter, &sub);
+    if (bson_iterator_next(&sub) != BSON_DOUBLE || strcmp(bson_iterator_key(&sub), "r") != 0)
+        return 0;
+    z->r = bson_iterator_double(&sub);
+    if (bson_iterator_next(&sub) != BSON_DOUBLE || strcmp(bson_iterator_key(&sub), "i") != 0)
+        return 0;
+    z->i = bson_iterator_double(&sub);
+    if (bson_iterator_next(&sub) != BSON_EOO)
+        return 0;
+    return 1;
+}
+
+
+EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i) {
+    bson_type sub_type, common_type;
+    struct Rcomplex z;
+    bson_iterator sub[MAXDIM+1];
+    mwSize ndims = 0;
+    mwSize count[MAXDIM+1];
+    mwSize dim[MAXDIM+1];
+    mwSize* mdim = dim + 1;
+    mwSize sizes[MAXDIM+1];
+    mxArray* ret;
+    mwSize depth, j, len, ofs;
+  
+    sub[0] = *(bson_iterator*)i;
+    do {
+        bson_iterator_subiterator(&sub[ndims], &sub[ndims+1]);
+        if (++ndims > MAXDIM) {
+            mexPrintf("Max dimensions (%d) exceeded. Use an iterator\n", MAXDIM);
+            return 0;
+        }
+        sub_type = bson_iterator_next(&sub[ndims]);
+    }
+    while (sub_type == BSON_ARRAY);
+
+    switch (common_type = sub_type) {
+    case BSON_INT: ;
+    case BSON_LONG: ;
+    case BSON_DOUBLE: ;
+    case BSON_STRING: ;
+    case BSON_BOOL: ;
+    case BSON_DATE:
+        break;
+    case BSON_OBJECT:
+        if (_iterator_getComplex(&sub[ndims], &z))
+            break;
+        /* fall thru to default */
+    default:
+        /* including empty array */
+        mexPrintf("Unable to convert array - invalid type (%d)", common_type);
+        return 0;
+    }
+
+    /* initial lowest level count */
+    for (j = 0; j <= ndims; j++)
+        count[j] = 1;
+    while ((sub_type = bson_iterator_next(&sub[ndims])) != BSON_EOO) {
+        if (sub_type != common_type) {
+            mexPrintf("Unable to convert array - inconsistent types");
+            return 0;
+        }
+        if (sub_type == BSON_OBJECT && !_iterator_getComplex(&sub[ndims], &z)) {
+            mexPrintf("Unable to convert array - invalid subobject");
+            return 0;
+        }
+        ++count[ndims];
+    }
+
+    /* step through rest of array -- checking common type and dimensions */
+    memset(dim, 0, sizeof(dim));
+    depth = ndims;
+    while (depth >= 1) {
+        sub_type = bson_iterator_next(&sub[depth]);
+        switch (sub_type) {
+        case BSON_EOO:
+            if (dim[depth] == 0)
+                dim[depth] = count[depth];
+            else if (dim[depth] != count[depth]) {
+                mexPrintf("Unable to convert array - inconsistent dimensions");
+                return 0;
+            }
+            depth--;
+            break;
+        case BSON_ARRAY:
+            count[depth]++;
+            bson_iterator_subiterator(&sub[depth], &sub[depth+1]);
+            if (++depth > ndims) {
+                mexPrintf("Unable to convert array - inconsistent dimensions");
+                return 0;
+            }
+            count[depth] = 0;
+            break;
+        case BSON_INT: ;
+        case BSON_LONG: ;
+        case BSON_DOUBLE: ;
+        case BSON_STRING: ;
+        case BSON_BOOL: ;
+        case BSON_DATE: ;
+GotEl:  {
+            if (depth != ndims || sub_type != common_type) {
+                mexPrintf("Unable to convert array - inconsistent dimensions or types");
+                return 0;
+            }
+            count[depth]++;
+            break;
+        }
+        case BSON_OBJECT:
+            if (_iterator_getComplex(&sub[depth], &z))
+                goto GotEl;
+            /* fall thru to default */
+        default:
+            mexPrintf("Unable to convert array - invalid type (%d)", sub_type);
+            return 0;
+        }
+    }
+
+    if (ndims > 1) {
+        j = dim[ndims];            /* reverse row and column */
+        dim[ndims] = dim[ndims-1];
+        dim[ndims-1] = j;
+    }
+    len = 1;
+    for (depth = ndims; depth > 0; depth--) {
+        sizes[depth] = len;
+        len *= dim[depth];
+    }
+    if (ndims > 1) {
+        reverse(mdim, ndims); /* reverse dimensions for Matlab */
+        j = sizes[ndims];
+        sizes[ndims] = sizes[ndims-1];
+        sizes[ndims-1] = j;
+    }
+/*
+    for (j = 1; j <= ndims; j++)
+        mexPrintf("%d ", dim[j]);
+    mexPrintf("\n");
+
+    for (j = 1; j <= ndims; j++)
+        mexPrintf("%d ", sizes[j]);
+    mexPrintf("\n");
+*/
+    switch (common_type) {
+    case BSON_INT:    ret = mxCreateNumericArray(ndims, mdim, mxINT32_CLASS, mxREAL); break;
+    case BSON_LONG:   ret = mxCreateNumericArray(ndims, mdim, mxINT64_CLASS, mxREAL); break;
+    case BSON_DATE:
+    case BSON_DOUBLE: ret = mxCreateNumericArray(ndims, mdim, mxDOUBLE_CLASS, mxREAL); break;
+    case BSON_STRING:
+    case BSON_BOOL:   ret = mxCreateLogicalArray(ndims, mdim); break;
+    case BSON_OBJECT: ret = mxCreateNumericArray(ndims, mdim, mxDOUBLE_CLASS, mxCOMPLEX); break;
+    default:
+        /* never reaches here */
+        ret = 0;
+    }
+
+    /* step through array(s) again, pulling out values */
+    bson_iterator_subiterator(&sub[0], &sub[1]);
+    depth = 1;
+    count[depth] = 0;
+    while (depth >= 1) {
+        sub_type = bson_iterator_next(&sub[depth]);
+        count[depth]++;
+        if (sub_type == BSON_EOO) {
+            depth--;
+        } else if (sub_type == BSON_ARRAY) {
+            bson_iterator_subiterator(&sub[depth], &sub[depth+1]);
+            depth++;
+            count[depth] = 0;
+        } else {
+            ofs = 0;
+            for (j = 1; j <= ndims; j++)
+                ofs += sizes[j] * (count[j] - 1);
+
+            switch (sub_type) {
+                case BSON_INT:
+                    ((int*)mxGetData(ret))[ofs] = bson_iterator_int(&sub[depth]);
+                    break;
+                case BSON_DATE:
+                    mxGetPr(ret)[ofs] = 719529.0 + bson_iterator_date(&sub[depth]) / (1000 * 60 * 60 * 24);
+                    break;
+                case BSON_DOUBLE: 
+                    mxGetPr(ret)[ofs] = bson_iterator_double(&sub[depth]);
+                    break;
+                case BSON_LONG:
+                    ((int64_t*)mxGetData(ret))[ofs] = bson_iterator_long(&sub[depth]);
+                    break;
+                case BSON_STRING:
+                    break;
+                case BSON_BOOL: ;
+                    ((mxLogical*)mxGetData(ret))[ofs] = bson_iterator_bool(&sub[depth]);
+                    break;
+                case BSON_OBJECT:
+                    _iterator_getComplex(&sub[depth], &z);
+                    mxGetPr(ret)[ofs] = z.r;
+                    mxGetPi(ret)[ofs] = z.i;
+                    break;
+                default: ;
+                    /* never reaches here */
+            }
+        }
+    }
+
+    return ret;
+}
+
 

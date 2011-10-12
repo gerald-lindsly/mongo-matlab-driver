@@ -16,6 +16,14 @@ classdef Bson
             i = BsonIterator(b);
         end
 
+        function i = find(b, name)
+            i = BsonIterator;
+            s = calllib('MongoMatlabDriver', 'mongo_bson_find', b.h, name, i.h);
+            if isNull(i.h)
+                i = [];
+            end
+        end
+
         function display_(b, i, depth)
             while i.next()
                 t = i.type;
@@ -52,9 +60,9 @@ classdef Bson
                         r = i.value;
                         fprintf(1, '%s, %s', r.pattern, r.options);
                     case BsonType.CODEWSCOPE
-                        c = i.value
+                        c = i.value;
                         fprintf(1, 'CODEWSCOPE %s\n', c.code);
-                        fprinf(1, '    Scope');
+                        fprintf(1, '    Scope:\n');
                         c.scope.display()
                     case {BsonType.INT, BsonType.LONG}
                         fprintf('%d', i.value);

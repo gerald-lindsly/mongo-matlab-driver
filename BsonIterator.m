@@ -4,21 +4,32 @@ classdef BsonIterator
     end
 
     methods
-        function i = BsonIterator(b)
+        function i = BsonIterator(varargin)
             i.h = libpointer('bson_iterator_Ptr');
-            if strcmp(class(b), 'Bson')
-                calllib('MongoMatlabDriver', 'mongo_bson_iterator_create', b.h, i.h);
-            else
-                calllib('MongoMatlabDriver', 'mongo_bson_subiterator', b.h, i.h);
+            if nargin > 0
+                b = varargin{1};
+                if isa(b, 'Bson')
+                    calllib('MongoMatlabDriver', 'mongo_bson_iterator_create', b.h, i.h);
+                else
+                    calllib('MongoMatlabDriver', 'mongo_bson_subiterator', b.h, i.h);
+                end
             end
         end
 
         function t = type(i)
-            t = BsonType(calllib('MongoMatlabDriver', 'mongo_bson_iterator_type', i.h));
+            if isNull(i.h)
+                t = BsonType.EOO
+            else
+                t = BsonType(calllib('MongoMatlabDriver', 'mongo_bson_iterator_type', i.h));
+            end
         end
 
         function t = next(i)
-            t = calllib('MongoMatlabDriver', 'mongo_bson_iterator_next', i.h);
+            if isNull(i.h)
+                t = BsonType.EOO
+            else
+                t = BsonType(calllib('MongoMatlabDriver', 'mongo_bson_iterator_next', i.h));
+            end
         end
 
         function k = key(i)
@@ -33,6 +44,10 @@ classdef BsonIterator
                     v = calllib('MongoMatlabDriver', 'mongo_bson_iterator_double', i.h);
                 case {BsonType.STRING, BsonType.SYMBOL}
                     v = calllib('MongoMatlabDriver', 'mongo_bson_iterator_string', i.h);
+                case BsonType.OBJECT
+                    error('BsonIterator:value', 'Iterator points to a subobject. Use subiterator().');
+                case BsonType.ARRAY
+                    v = calllib('MongoMatlabDriver', 'mongo_bson_array_value', i.h);
                 case BsonType.BINDATA
                     s = calllib('MongoMatlabDriver', 'mongo_bson_iterator_bin_len', i.h);
                     v = zeros([1, s], 'uint8');
@@ -87,3 +102,5 @@ classdef BsonIterator
 
     end
 end
+
+

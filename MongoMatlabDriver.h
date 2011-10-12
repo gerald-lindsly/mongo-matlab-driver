@@ -4,13 +4,16 @@
 #endif
 #endif
 
-#include "mongo-c-driver-src\platform.h"
-
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
+#define _CRT_SECURE_NO_WARNINGS
 #else
 #define EXPORT
 #endif
+
+#include <matrix.h>
+
+#include "mongo-c-driver-src\platform.h"
 
 struct bson_buffer {
     int dummy;
@@ -26,16 +29,14 @@ struct bson_iterator_ {
 
 
 EXPORT void mongo_bson_buffer_create(struct bson_buffer** b);
-EXPORT int  mongo_bson_buffer_append_int(struct bson_buffer* b, char* name, int value);
-EXPORT int  mongo_bson_buffer_append_long(struct bson_buffer* b, char* name, int64_t value);
-EXPORT int  mongo_bson_buffer_append_double(struct bson_buffer* b, char* name, double value);
+EXPORT void mongo_bson_buffer_free(struct bson_buffer* b);
+EXPORT int mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray* value);
 EXPORT int  mongo_bson_buffer_append_string(struct bson_buffer* b, char* name, char* value);
 EXPORT int  mongo_bson_buffer_append_binary(struct bson_buffer* b, char* name, int type, void* value, int len);
 EXPORT void mongo_bson_oid_gen(void* oid);
 EXPORT const char* mongo_bson_oid_to_string(void* oid);
 EXPORT void mongo_bson_oid_from_string(char* s, void* oid);
 EXPORT int  mongo_bson_buffer_append_oid(struct bson_buffer* b, char* name, void* value);
-EXPORT int  mongo_bson_buffer_append_bool(struct bson_buffer* b, char *name, int value);
 EXPORT int  mongo_bson_buffer_append_date(struct bson_buffer* b, char *name, int64_t value);
 EXPORT int  mongo_bson_buffer_append_null(struct bson_buffer* b, char *name);
 EXPORT int  mongo_bson_buffer_append_regex(struct bson_buffer* b, char *name, char* pattern, char* options);
@@ -44,9 +45,12 @@ EXPORT int  mongo_bson_buffer_append_symbol(struct bson_buffer* b, char *name, c
 EXPORT int  mongo_bson_buffer_append_codewscope(struct bson_buffer* b, char *name, char* code, struct bson_* scope);
 EXPORT int  mongo_bson_buffer_start_object(struct bson_buffer* b, char* name);
 EXPORT int  mongo_bson_buffer_finish_object(struct bson_buffer* b);
+EXPORT int  mongo_bson_buffer_start_array(struct bson_buffer* b, char* name);
 EXPORT void mongo_bson_buffer_to_bson(struct bson_buffer** b, struct bson_** out);
 EXPORT int  mongo_bson_size(struct bson_* b);
+EXPORT int  mongo_bson_buffer_size(struct bson_buffer* b);
 EXPORT void mongo_bson_free(struct bson_* b);
+EXPORT void mongo_bson_find(struct bson_* b, char* name, struct bson_iterator_** i);
 EXPORT void mongo_bson_iterator_create(struct bson_* b, struct bson_iterator_** i);
 EXPORT void mongo_bson_iterator_free(struct bson_iterator_* i);
 EXPORT int  mongo_bson_iterator_type(struct bson_iterator_* i);
@@ -67,3 +71,4 @@ EXPORT const char* mongo_bson_iterator_regex(struct bson_iterator_* i);
 EXPORT const char* mongo_bson_iterator_regex_opts(struct bson_iterator_* i);
 EXPORT const char* mongo_bson_iterator_code(struct bson_iterator_* i);
 EXPORT void mongo_bson_iterator_code_scope(struct bson_iterator_* i, struct bson_buffer** b);
+EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i);

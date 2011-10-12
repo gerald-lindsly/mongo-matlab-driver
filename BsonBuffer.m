@@ -9,29 +9,32 @@ classdef BsonBuffer
             calllib('MongoMatlabDriver', 'mongo_bson_buffer_create', bb.h);
         end
 
+        function s = size(b)
+            s = calllib('MongoMatlabDriver', 'mongo_bson_buffer_size', b.h);
+        end
+
         function ok = append(bb, name, value)
             if isempty(value)
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_null', bb.h, name) ~= 0);
-            elseif isa(value, 'char')
-                ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_string', bb.h, name, value) ~= 0);
-            elseif isa(value, 'float')
-                ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_double', bb.h, name, value) ~= 0);
-            elseif isa(value, 'int64') | isa(value, 'uint64')
-                ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_long', bb.h, name, value) ~= 0);
             elseif isa(value, 'BsonOID')
                 p = libpointer('uint8Ptr', value.value);
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_oid', bb.h, name, p) ~= 0);
-            elseif isa(value, 'logical')
-                ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_bool', bb.h, name, value) ~= 0);
             elseif isa(value, 'BsonRegex')
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_regex', bb.h, name, value.pattern, value.options) ~= 0);
             elseif isa(value, 'BsonCodeWScope')
-                'here'
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_codewscope', bb.h, name, value.code, value.scope.h) ~= 0);
-                'there'
+            elseif isa(value, 'logical')
+                ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append', bb.h, name, value) ~= 0);
+            elseif isa(value, 'char')
+                ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_string', bb.h, name, value) ~= 0);
+            elseif ~isreal(value) && ~isa(value, 'double')
+                error('BsonBuffer:append', 'Only doubles are supported for complex values');
+            elseif isnumeric(value)
+                ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append', bb.h, name, value) ~= 0);
             else
-                ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_int', bb.h, name, value) ~= 0);
+                error('BsonBuffer:append', 'Don''t know how to handle type (%s)', class(value));
             end
+
         end
 
         function ok = appendBinary(bb, name, value, varargin)
@@ -64,6 +67,10 @@ classdef BsonBuffer
 
         function ok = finishObject(bb)
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_finish_object', bb.h) ~= 0);
+        end
+
+        function ok = startArray(bb, name)
+            ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_start_array', bb.h, name) ~= 0);
         end
 
         function b = finish(bb)
