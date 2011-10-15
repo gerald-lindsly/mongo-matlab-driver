@@ -17,7 +17,7 @@ classdef BsonIterator
         end
 
         function t = type(i)
-            if isNull(i.h)
+            if isempty(i.h) || isNull(i.h)
                 t = BsonType.EOO
             else
                 t = BsonType(calllib('MongoMatlabDriver', 'mongo_bson_iterator_type', i.h));
@@ -25,7 +25,7 @@ classdef BsonIterator
         end
 
         function t = next(i)
-            if isNull(i.h)
+            if isempty(i.h) || isNull(i.h)
                 t = BsonType.EOO
             else
                 t = BsonType(calllib('MongoMatlabDriver', 'mongo_bson_iterator_next', i.h));
@@ -45,7 +45,21 @@ classdef BsonIterator
                 case {BsonType.STRING, BsonType.SYMBOL}
                     v = calllib('MongoMatlabDriver', 'mongo_bson_iterator_string', i.h);
                 case BsonType.OBJECT
-                    error('BsonIterator:value', 'Iterator points to a subobject. Use subiterator().');
+                    j = i.subiterator;
+                    j.next;
+                    success = strcmp(j.key, 'r') && j.type == BsonType.REAL;
+                    if success
+                        r = j.value;
+                        j.next;
+                        success = strcmp(j.key, 'i') && j.type == BsonType.REAL;
+                        if success
+                            v = complex(r, j.value);
+                            success = (j.next == BsonType.EOO);
+                        end
+                    end
+                    if ~success
+                        error('BsonIterator:value', 'Iterator points to a subobject. Use subiterator().');
+                    end
                 case BsonType.ARRAY
                     v = calllib('MongoMatlabDriver', 'mongo_bson_array_value', i.h);
                 case BsonType.BINDATA
@@ -62,7 +76,7 @@ classdef BsonIterator
                 case BsonType.BOOL
                     v = (calllib('MongoMatlabDriver', 'mongo_bson_iterator_bool', i.h) ~= 0);
                 case BsonType.DATE
-                    v =  719529 + calllib('MongoMatlabDriver', 'mongo_bson_iterator_date', i.h) / (1000 * 60 * 60 * 24);
+                    v =  719529 + calllib('MongoMatlabDriver', 'mongo_bson_iterator_date', i.h) / (1000.0 * 60 * 60 * 24);
                 case BsonType.REGEX
                     v = BsonRegex(calllib('MongoMatlabDriver', 'mongo_bson_iterator_regex', i.h), ...
                                   calllib('MongoMatlabDriver', 'mongo_bson_iterator_regex_opts', i.h));
@@ -74,6 +88,10 @@ classdef BsonIterator
                     scope = Bson();
                     calllib('MongoMatlabDriver', 'mongo_bson_iterator_code_scope', i.h, scope.h);
                     v = BsonCodeWScope(calllib('MongoMatlabDriver', 'mongo_bson_iterator_code', i.h), scope);
+                case BsonType.TIMESTAMP
+                    inc = int32(0);
+                    [t, dummy_ih, inc] = calllib('MongoMatlabDriver', 'mongo_bson_iterator_timestamp', i.h, inc);
+                    v = BsonTimestamp(719529 + t / (60.0 * 60 * 24), inc);
                 case BsonType.INT
                     v = int32(calllib('MongoMatlabDriver', 'mongo_bson_iterator_int', i.h));
                 case BsonType.LONG
@@ -98,6 +116,7 @@ classdef BsonIterator
         function clear(i)
             calllib('MongoMatlabDriver', 'mongo_bson_iterator_free', i.h);
             clear i.h;
+            i.h = [];
         end
 
     end

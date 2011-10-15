@@ -201,24 +201,19 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libmx.lib;libmex.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib;libmx.lib;libmex.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="api_bson.c" />
+    <ClCompile Include="api_mongo.c" />
     <ClCompile Include="DllMain.c" />
     <ClCompile Include="mongo-c-driver-src\bson.c" />
     <ClCompile Include="mongo-c-driver-src\encoding.c" />
-    <ClCompile Include="mongo-c-driver-src\gridfs.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="mongo-c-driver-src\gridfs.c" />
     <ClCompile Include="mongo-c-driver-src\md5.c" />
-    <ClCompile Include="mongo-c-driver-src\mongo.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="mongo-c-driver-src\net.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="mongo-c-driver-src\mongo.c" />
+    <ClCompile Include="mongo-c-driver-src\net.c" />
     <ClCompile Include="mongo-c-driver-src\numbers.c" />
   </ItemGroup>
   <ItemGroup>
@@ -241,6 +236,8 @@
     <None Include="BsonTimestamp.m" />
     <None Include="BsonType.m" />
     <None Include="mongo-c-driver-src\README.md" />
+    <None Include="Mongo.m" />
+    <None Include="MongoCursor.m" />
     <None Include="MongoStart.m" />
     <None Include="MongoStop.m" />
     <None Include="MongoTest.m" />

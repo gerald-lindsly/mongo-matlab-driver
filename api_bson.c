@@ -3,7 +3,6 @@
 #include <malloc.h>
 
 #include <mex.h>
-#include <matrix.h>
 
 #define MAXDIM 20
 
@@ -124,6 +123,8 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
         sizes[i] = j;
         j *= dims[i];
     } while (i > 0);
+    if (ndims == 2 && dims[1] == 1)
+        ndims--;
     if (ndims > 1) {
         /* reverse row and columns */
         j = dims[ndims-1];
@@ -133,8 +134,6 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
         sizes[ndims-1] = sizes[ndims-2];
         sizes[ndims-2] = j;
     }
-    if (ndims == 2 && dims[1] == 1)
-        ndims--;
     memset(ijk, 0, ndims * sizeof(mwSize));
     p = (char*)mxGetData(value);
     while (success && depth >= 0) {
@@ -213,8 +212,72 @@ EXPORT int mongo_bson_buffer_append_oid(struct bson_buffer* b, char* name, void*
 }
 
 
-EXPORT int  mongo_bson_buffer_append_date(struct bson_buffer* b, char *name, int64_t value) {
-    return (bson_append_date((bson*) b, name, value) == BSON_OK);
+EXPORT int  mongo_bson_buffer_append_date(struct bson_buffer* b, char *name, mxArray* value) {
+    size_t numel = mxGetNumberOfElements(value);
+    mxClassID cls = mxGetClassID(value);
+    bson* _b = (bson*)b;
+    mwSize i, j;
+    mwSize dims[MAXDIM];
+    mwSize ijk[MAXDIM];
+    mwSize sizes[MAXDIM];
+    mwSize ndims;
+    const mwSize *odims;
+    char* p;
+    int depth = 0;
+    int success;
+    if (cls != mxDOUBLE_CLASS) {
+        mexPrintf("Only double values are permitted in appendDate\n");
+        return 0;
+    }
+    if (numel == 1)
+        return (bson_append_date(_b, name, (bson_date_t)((mxGetPr(value)[0] - 719529) * (1000 * 60 * 60 * 24)) ) == BSON_OK);
+    success = (bson_append_start_array(_b, name) == BSON_OK);
+    odims = mxGetDimensions(value);
+    ndims = mxGetNumberOfDimensions(value);
+    memcpy(dims, odims, ndims*sizeof(mwSize));
+    if (ndims > 1)
+        reverse(dims, ndims);
+    i = ndims;
+    j = 1;
+    do {
+        i--;
+        sizes[i] = j;
+        j *= dims[i];
+    } while (i > 0);
+    if (ndims == 2 && dims[1] == 1)
+        ndims--;
+    if (ndims > 1) {
+        /* reverse row and columns */
+        j = dims[ndims-1];
+        dims[ndims-1] = dims[ndims-2];
+        dims[ndims-2] = j;
+        j = sizes[ndims-1];
+        sizes[ndims-1] = sizes[ndims-2];
+        sizes[ndims-2] = j;
+    }
+    memset(ijk, 0, ndims * sizeof(mwSize));
+    p = (char*)mxGetData(value);
+    while (success && depth >= 0) {
+        if (ijk[depth] < dims[depth]) {
+            const char* num = numstr((int)(ijk[depth]++));
+            if (depth < ndims - 1) {
+                depth++;
+                success = (bson_append_start_array(_b, num) == BSON_OK);
+            }
+            else {
+                i = 0;
+                for (j = 0; j < ndims; j++)
+                    i += (ijk[j]-1) * sizes[j];
+                success = (bson_append_date(_b, num, (bson_date_t)((mxGetPr(value)[i] - 719529) * (1000 * 60 * 60 * 24)) ) == BSON_OK);
+            }
+        }
+        else {
+            ijk[depth] = 0;
+            success = (bson_append_finish_object(_b) == BSON_OK);
+            depth--;
+        }
+    }
+    return success;
 }
 
 
@@ -243,6 +306,14 @@ EXPORT int  mongo_bson_buffer_append_codewscope(struct bson_buffer* b, char *nam
 }
 
 
+EXPORT int  mongo_bson_buffer_append_timestamp(struct bson_buffer* b, char *name, int date, int increment) {
+    bson_timestamp_t ts;
+    ts.i = increment;
+    ts.t = date;
+    return (bson_append_timestamp((bson*) b, name, &ts) == BSON_OK);
+
+}
+
 EXPORT int mongo_bson_buffer_start_object(struct bson_buffer* b, char* name) {
     return (bson_append_start_object((bson*) b, name) == BSON_OK);
 }
@@ -265,7 +336,7 @@ EXPORT int mongo_bson_size(struct bson_* b) {
 
 EXPORT int  mongo_bson_buffer_size(struct bson_buffer* b) {
     bson* _b = (bson*)b;
-    return _b->cur - _b->data + 1;
+    return (int)(_b->cur - _b->data) + 1;
 }
 
 
@@ -402,6 +473,14 @@ EXPORT void mongo_bson_iterator_code_scope(struct bson_iterator_* i, struct bson
     *b = (struct bson_buffer*)_b;
 }
 
+
+EXPORT int mongo_bson_iterator_timestamp(struct bson_iterator_* i, int* increment) {
+    bson_timestamp_t ts = bson_iterator_timestamp((bson_iterator*) i);
+    *increment = ts.i;
+    return ts.t;
+}
+
+
 struct Rcomplex {
     double r;
     double i;
@@ -436,7 +515,7 @@ EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i) {
     mwSize sizes[MAXDIM+1];
     mxArray* ret;
     mwSize depth, j, len, ofs;
-  
+    int isRow = 0;
     sub[0] = *(bson_iterator*)i;
     do {
         bson_iterator_subiterator(&sub[ndims], &sub[ndims+1]);
@@ -452,7 +531,7 @@ EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i) {
     case BSON_INT: ;
     case BSON_LONG: ;
     case BSON_DOUBLE: ;
-    case BSON_STRING: ;
+ /* case BSON_STRING: ; */
     case BSON_BOOL: ;
     case BSON_DATE:
         break;
@@ -508,7 +587,7 @@ EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i) {
         case BSON_INT: ;
         case BSON_LONG: ;
         case BSON_DOUBLE: ;
-        case BSON_STRING: ;
+/*      case BSON_STRING: ; */
         case BSON_BOOL: ;
         case BSON_DATE: ;
 GotEl:  {
@@ -539,11 +618,17 @@ GotEl:  {
         sizes[depth] = len;
         len *= dim[depth];
     }
+
     if (ndims > 1) {
         reverse(mdim, ndims); /* reverse dimensions for Matlab */
         j = sizes[ndims];
         sizes[ndims] = sizes[ndims-1];
         sizes[ndims-1] = j;
+    } else {
+        isRow = 1;
+        ndims = 2;
+        mdim[1] = mdim[0];
+        mdim[0] = 1;
     }
 /*
     for (j = 1; j <= ndims; j++)
@@ -559,7 +644,7 @@ GotEl:  {
     case BSON_LONG:   ret = mxCreateNumericArray(ndims, mdim, mxINT64_CLASS, mxREAL); break;
     case BSON_DATE:
     case BSON_DOUBLE: ret = mxCreateNumericArray(ndims, mdim, mxDOUBLE_CLASS, mxREAL); break;
-    case BSON_STRING:
+/*  case BSON_STRING: */
     case BSON_BOOL:   ret = mxCreateLogicalArray(ndims, mdim); break;
     case BSON_OBJECT: ret = mxCreateNumericArray(ndims, mdim, mxDOUBLE_CLASS, mxCOMPLEX); break;
     default:
@@ -567,6 +652,8 @@ GotEl:  {
         ret = 0;
     }
 
+    if (isRow)
+        ndims--;
     /* step through array(s) again, pulling out values */
     bson_iterator_subiterator(&sub[0], &sub[1]);
     depth = 1;
@@ -590,7 +677,7 @@ GotEl:  {
                     ((int*)mxGetData(ret))[ofs] = bson_iterator_int(&sub[depth]);
                     break;
                 case BSON_DATE:
-                    mxGetPr(ret)[ofs] = 719529.0 + bson_iterator_date(&sub[depth]) / (1000 * 60 * 60 * 24);
+                    mxGetPr(ret)[ofs] = 719529.0 + bson_iterator_date(&sub[depth]) / (1000.0 * 60 * 60 * 24);
                     break;
                 case BSON_DOUBLE: 
                     mxGetPr(ret)[ofs] = bson_iterator_double(&sub[depth]);

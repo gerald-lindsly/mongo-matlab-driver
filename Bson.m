@@ -24,6 +24,16 @@ classdef Bson
             end
         end
 
+        function v = value(b, name)
+            i = b.find(name);
+            if isempty(i)
+                v = [];
+            else
+                v = i.value;
+                i.clear;
+            end
+        end
+
         function display_(b, i, depth)
             while i.next()
                 t = i.type;
@@ -62,8 +72,11 @@ classdef Bson
                     case BsonType.CODEWSCOPE
                         c = i.value;
                         fprintf(1, 'CODEWSCOPE %s\n', c.code);
-                        fprintf(1, '    Scope:\n');
-                        c.scope.display()
+                        j = c.scope.iterator;
+                        c.scope.display_(j, depth+1);
+                    case BsonType.TIMESTAMP
+                        ts = i.value;
+                        fprintf(1, '%s (%d)', datestr(ts.date), ts.increment);
                     case {BsonType.INT, BsonType.LONG}
                         fprintf('%d', i.value);
                     case {BsonType.OBJECT, BsonType.ARRAY}
@@ -87,6 +100,7 @@ classdef Bson
         function clear(b)
             calllib('MongoMatlabDriver', 'mongo_bson_free', b.h);
             clear b.h;
+            b.h = [];
         end
 
     end

@@ -23,6 +23,9 @@ classdef BsonBuffer
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_regex', bb.h, name, value.pattern, value.options) ~= 0);
             elseif isa(value, 'BsonCodeWScope')
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_codewscope', bb.h, name, value.code, value.scope.h) ~= 0);
+            elseif isa(value, 'BsonTimestamp')
+                ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_timestamp', bb.h, name, ...
+                              (value.date - 719529) * (60 * 60 * 24), value.increment) ~= 0);
             elseif isa(value, 'logical')
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append', bb.h, name, value) ~= 0);
             elseif isa(value, 'char')
@@ -50,7 +53,7 @@ classdef BsonBuffer
         end
 
         function ok = appendDate(bb, name, value)
-            ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_date', bb.h, name, (value - 719529) * (1000 * 60 * 60 * 24)) ~= 0);
+            ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_date', bb.h, name, value) ~= 0);
         end
 
         function ok = appendCode(bb, name, value)
@@ -77,6 +80,7 @@ classdef BsonBuffer
             b = Bson;
             calllib('MongoMatlabDriver', 'mongo_bson_buffer_to_bson', bb.h, b.h);
             clear bb.h;
+            bb.h = [];
         end
 
     end

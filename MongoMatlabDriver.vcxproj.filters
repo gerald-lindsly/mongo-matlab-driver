@@ -41,6 +41,9 @@
     <ClCompile Include="mongo-c-driver-src\net.c">
       <Filter>mongo-c-driver-src</Filter>
     </ClCompile>
+    <ClCompile Include="api_mongo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mongo-c-driver-src\bson.h">
@@ -103,6 +106,12 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="BsonTimestamp.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Mongo.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="MongoCursor.m">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
