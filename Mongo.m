@@ -1,4 +1,4 @@
-classdef Mongo
+classdef Mongo < handle
     properties
         h
     end
@@ -7,6 +7,11 @@ classdef Mongo
       update_upsert = uint32(1);
       update_multi  = uint32(2);
       update_basic  = uint32(4);
+
+      index_unique     = uint32(1);
+      index_drop_dups  = uint32(4);
+      index_background = uint32(8);
+      index_sparse     = uint32(16);
    end
 
     methods
@@ -18,7 +23,8 @@ classdef Mongo
                 case 1
                     host = varargin{1};
                 case 2
-                    if ~strcmp('replset', varargin{1})
+                    host = varargin{1};
+                    if ~strcmp('replset', host)
                         error('Mongo:Mongo', 'Expected ''replset'' or a host for 1st parameter');
                     end
                     replset_name = varargin{2}
@@ -28,25 +34,15 @@ classdef Mongo
 
             m.h = libpointer('mongo_Ptr');
             calllib('MongoMatlabDriver', 'mongo_create', m.h)
-            if strcmp(host, 'replset')
+            if strcmp('replset', host)
                 calllib('MongoMatlabDriver', 'mmongo_replset_init', m.h, replset_name)
             else
                 calllib('MongoMatlabDriver', 'mmongo_connect', m.h, host);
             end
         end
 
-        function b = isConnected(m)
-            if isNull(m.h)
-                b = false
-            else
-                b = (calllib('MongoMatlabDriver', 'mongo_isConnected', m.h) ~= 0);
-            end
-        end
-
-        function clear(m)
+        function delete(m)
             calllib('MongoMatlabDriver', 'mmongo_destroy', m.h);
-            clear m.h;
-            m.h = [];
         end
 
         function addSeed(m, host)
@@ -63,6 +59,18 @@ classdef Mongo
 
         function b = reconnect(m)
             b = (calllib('MongoMatlabDriver', 'mmongo_reconnect', m.h) ~= 0);
+        end
+
+        function b = isConnected(m)
+            if isNull(m.h)
+                b = false
+            else
+                b = (calllib('MongoMatlabDriver', 'mongo_is_connected', m.h) ~= 0);
+            end
+        end
+
+        function b = isMaster(m)
+            b = (calllib('MongoMatlabDriver', 'mongo_is_master', m.h) ~= 0);
         end
 
         function b = checkConnection(m)
@@ -106,9 +114,9 @@ classdef Mongo
                 error('Mongo:findOne', 'Too many parameters')
             end
             if nargin == 4
-                fields = varargin{1}
+                fields = varargin{1};
             else
-                fields = Bson;
+               fields = Bson;
             end
             b = Bson;
             if ~calllib('MongoMatlabDriver', 'mmongo_find_one', m.h, ns, query.h, fields.h, b.h)
@@ -128,6 +136,95 @@ classdef Mongo
             end
             found = (calllib('MongoMatlabDriver', 'mmongo_find', m.h, ns, cursor.query.h, cursor.sort.h, cursor.fields.h, ...
                              cursor.limit, cursor.skip, cursor.options, cursor.h) ~= 0);
+        end
+
+        function num = count(m, ns, varargin)
+            if nargin == 2
+                query = Bson;
+            elseif nargin == 3
+                query = varargin{1};
+            else
+                error('Mongo:count', 'Unexpected number of parameters');
+            end
+            num = calllib('MongoMatlabDriver', 'mmongo_count', m.h, ns, query.h);
+        end
+
+        function err = indexCreate(m, ns, key, varargin)
+            options = uint32(0);
+            for i = 1 : size(varargin, 2) 
+                options = bitor(options, varargin{i});
+            end
+            if isa(key, 'char')
+                k = BsonBuffer;
+                k.append(key, true);
+                key = k.finish;
+            end
+            err = Bson;
+            if calllib('MongoMatlabDriver', 'mongo_index_create', m.h, ns, key.h, options, err.h)
+                err = [];
+            end
+        end
+
+        function ok = addUser(m, user, password, varagin)
+            db = 'admin';
+            if nargin > 4
+                error('Mongo:addUser', 'Unexpected number of parameters');
+            elseif nargin == 4
+                db = varargin{1}
+            end
+            ok = (calllib('MongoMatlabDriver', 'mongo_add_user', m.h, db, user, password) ~= 0);
+        end
+
+
+        function ok = authenticate(m, user, password, varagin)
+            db = 'admin';
+            if nargin > 4
+                error('Mongo:authenticate', 'Unexpected number of parameters');
+            elseif nargin == 4
+                db = varargin{1}
+            end
+            ok = (calllib('MongoMatlabDriver', 'mongo_authenticate', m.h, db, user, password) ~= 0);
+        end
+
+
+        function result = command(m, db, cmd)
+            result = Bson;
+            if ~calllib('MongoMatlabDriver', 'mongo_command', m.h, db, cmd.h, result.h)
+                % result = [];
+            end
+        end
+
+        function result = simpleCommand(m, db, cmdstr, arg)
+            bb = BsonBuffer;
+            bb.append(cmdstr, arg);
+            cmd = bb.finish;
+            result = m.command(db, cmd);
+        end
+
+        function err = getLastErr(m, db)
+            err = Bson
+            if ~calllib('MongoMatlabDriver', 'mongo_get_last_err', m.h, db, err.h)
+                err = [];
+            end
+        end
+
+        function err = getPrevErr(m, db)
+            err = Bson
+            if ~calllib('MongoMatlabDriver', 'mongo_get_prev_err', m.h, db, err.h)
+                err = [];
+            end
+        end
+
+        function resetErr(m, db)
+            m.simpleCommand(db, 'reseterror', true);
+        end
+
+        function errNo = getServerErr(m)
+            errNo = calllib('MongoMatlabDriver', 'mongo_get_server_err', m.h);
+        end
+
+        function errStr = getServerErrString(m)
+            errStr = calllib('MongoMatlabDriver', 'mongo_get_server_err_string', m.h);
         end
 
         function ok = dropDatabase(m, db)

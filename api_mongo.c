@@ -59,9 +59,14 @@ EXPORT void mmongo_connect(struct mongo_* conn, char* host) {
         mexPrintf("Unable to connect to %s:%d, error code = %d\n", hp.host, hp.port, conn_->err);
 }
 
-EXPORT int mongo_isConnected(struct mongo_* conn) {
+EXPORT int mongo_is_connected(struct mongo_* conn) {
     mongo* conn_ = (mongo*)conn;
     return conn_->connected;
+}
+
+
+EXPORT int  mongo_is_master(struct mongo_* conn) {
+    return mongo_cmd_ismaster((mongo*)conn, NULL);
 }
 
 
@@ -230,6 +235,97 @@ EXPORT int mongo_cursor_value(struct mongo_cursor_* cursor, struct bson_** value
 }
 
 
+EXPORT void mongo_cursor_free(struct mongo_cursor_* cursor) {
+    mongo_cursor* cursor_ = (mongo_cursor*)cursor;
+    mongo_cursor_destroy(cursor_);
+}
+
+
+EXPORT double mmongo_count(struct mongo_* conn, char* ns, struct bson_* query) {
+    mongo* conn_ = (mongo*)conn;
+    char* p = strchr(ns, '.');
+    if (!p) {
+        mexPrintf("Mongo:count - Expected a '.' in the namespace.\n");
+        return 0;
+    }
+    *p = '\0';
+    return (double)mongo_count(conn_, ns, p+1, (bson*)query);
+}
+
+
+EXPORT int mongo_index_create(struct mongo_* conn, char* ns, struct bson_* key, int options, struct bson_** out) {
+    bson err;
+    bson* errCopy;
+    if (mongo_create_index((mongo*)conn, ns, (bson*)key, options, &err) == MONGO_OK)
+        return 1;
+    errCopy = (bson*)malloc(sizeof(bson));
+    *errCopy = err;
+    *out = (struct bson_*)errCopy;
+    return 0;
+}
+
+
+EXPORT int  mongo_add_user(struct mongo_* conn, char* db, char* user, char* password) {
+    return (mongo_cmd_add_user((mongo*)conn, db, user, password) == MONGO_OK);
+}
+
+
+EXPORT int  mongo_authenticate(struct mongo_* conn, char* db, char* user, char* password) {
+    return (mongo_cmd_authenticate((mongo*)conn, db, user, password) == MONGO_OK);
+}
+
+
+EXPORT int mongo_command(struct mongo_* conn, char* db, struct bson_* cmd, struct bson_** result) {
+    bson out;
+    bson* outCopy;
+    if (mongo_run_command((mongo*)conn, db, (bson*)cmd, &out) == MONGO_OK) {
+        outCopy = (bson*)malloc(sizeof(bson));
+        *outCopy = out;
+        *result = (struct bson_*)outCopy;
+        return 1;
+    }
+    return 0;
+}
+
+
+EXPORT int mongo_get_last_err(struct mongo_* conn, char* db, struct bson_** err) {
+    bson out;
+    bson* outCopy;
+    if (mongo_cmd_get_last_error((mongo*)conn, db, &out) == MONGO_ERROR) {
+        outCopy = (bson*)malloc(sizeof(bson));
+        *outCopy = out;
+        *err = (struct bson_*)outCopy;
+        return 1;
+    }
+    return 0;
+
+}
+
+
+EXPORT int mongo_get_prev_err(struct mongo_* conn, char* db, struct bson_** err) {
+    bson out;
+    bson* outCopy;
+    if (mongo_cmd_get_prev_error((mongo*)conn, db, &out) == MONGO_ERROR) {
+        outCopy = (bson*)malloc(sizeof(bson));
+        *outCopy = out;
+        *err = (struct bson_*)outCopy;
+        return 1;
+    }
+    return 0;
+
+}
+
+
+EXPORT int  mongo_get_server_err(struct mongo_* conn) {
+    return ((mongo*)conn)->lasterrcode;
+}
+
+
+EXPORT char*  mongo_get_server_err_string(struct mongo_* conn) {
+    return ((mongo*)conn)->lasterrstr;
+}
+
+
 EXPORT int mongo_drop_database(struct mongo_* conn, char* db) {
     mongo* conn_ = (mongo*)conn;
     return (mongo_cmd_drop_db(conn_, db) == MONGO_OK);
@@ -238,7 +334,7 @@ EXPORT int mongo_drop_database(struct mongo_* conn, char* db) {
 
 EXPORT int mongo_drop(struct mongo_* conn, char* ns) {
     mongo* conn_ = (mongo*)conn;
-    char* p = strchr((char*)ns, '.');
+    char* p = strchr(ns, '.');
     if (!p) {
         mexPrintf("Mongo:drop - Expected a '.' in the namespace.\n");
         return 0;

@@ -1,4 +1,4 @@
-classdef BsonIterator
+classdef BsonIterator < handle
     properties
         h
     end
@@ -113,10 +113,8 @@ classdef BsonIterator
             si = BsonIterator(i);
         end
 
-        function clear(i)
+        function delete(i)
             calllib('MongoMatlabDriver', 'mongo_bson_iterator_free', i.h);
-            clear i.h;
-            i.h = [];
         end
 
     end

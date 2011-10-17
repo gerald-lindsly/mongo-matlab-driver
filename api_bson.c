@@ -35,8 +35,10 @@ EXPORT void mongo_bson_buffer_to_bson(struct bson_buffer** b, struct bson_** out
 
 
 EXPORT void mongo_bson_free(struct bson_* b) {
-    bson_destroy((bson*)b);
-    free(b);
+    if (b != NULL) {
+        bson_destroy((bson*)b);
+        free(b);
+    }
 }
 
 
@@ -107,6 +109,7 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
         case mxUINT64_CLASS:
             return (bson_append_long(_b, name, ((int64_t*)mxGetData(value))[0]) == BSON_OK);
         default:
+            mexPrintf("BsonBuffer:append - Unhandled type: %s\n", mxGetClassName(value));
             return 0;
         }
     }
@@ -183,6 +186,7 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
                     success = (bson_append_long(_b, num, ((int64_t*)mxGetData(value))[i]) == BSON_OK);
                     break;
                 default:
+                    mexPrintf("BsonBuffer:append - Unhandled type: %s\n", mxGetClassName(value));
                     return 0;
                 }
             }
@@ -329,6 +333,20 @@ EXPORT int mongo_bson_buffer_start_array(struct bson_buffer* b, char* name) {
 }
 
 
+EXPORT int  mongo_bson_buffer_append_bson(struct bson_buffer* b, char* name, struct bson_* bs) {
+    return (bson_append_bson((bson*)b, name, (bson*)bs) == BSON_OK);
+}
+
+
+EXPORT void mongo_bson_empty(struct bson_** b) {
+    bson empty;
+    bson* b_ = (bson*)malloc(sizeof(bson));
+    bson_empty(&empty);
+    bson_copy(b_, &empty);
+    *b = (struct bson_*)b_;
+}
+
+
 EXPORT int mongo_bson_size(struct bson_* b) {
     return bson_size((bson*) b);
 }
@@ -469,7 +487,9 @@ EXPORT const char* mongo_bson_iterator_code(struct bson_iterator_* i) {
 
 EXPORT void mongo_bson_iterator_code_scope(struct bson_iterator_* i, struct bson_buffer** b) {
     bson* _b = (bson*)malloc(sizeof(bson));
-    bson_iterator_code_scope((bson_iterator*) i, _b);
+    bson scope;
+    bson_iterator_code_scope((bson_iterator*) i, &scope);
+    bson_copy(_b, &scope);
     *b = (struct bson_buffer*)_b;
 }
 

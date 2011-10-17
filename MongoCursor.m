@@ -1,4 +1,4 @@
-classdef MongoCursor
+classdef MongoCursor < handle
     properties
         h
         query
@@ -10,12 +10,12 @@ classdef MongoCursor
     end
 
     methods
-        function c = MongoCursor(varargin)
-            c.h = libpointer('mongo_cursor_Ptr');
+        function cursor = MongoCursor(varargin)
+            cursor.h = libpointer('mongo_cursor_Ptr');
             if nargin > 1
                 error('MongoCursor:MongoCursor', 'Too many parameters');
             elseif nargin == 1
-                c.query = varargin{1};
+                cursor.query = varargin{1};
             end
         end
 
@@ -30,8 +30,9 @@ classdef MongoCursor
             end
         end
 
-        function clear(cursor)
+        function delete(cursor)
             if ~isNull(cursor.h)
+                calllib('MongoMatlabDriver', 'mongo_cursor_free', cursor.h);
                 clear cursor.h
                 cursor.h = [];
             end

@@ -1,4 +1,4 @@
-classdef BsonBuffer
+classdef BsonBuffer < handle
     properties
         h
     end
@@ -16,6 +16,8 @@ classdef BsonBuffer
         function ok = append(bb, name, value)
             if isempty(value)
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_null', bb.h, name) ~= 0);
+            elseif isa(value, 'Bson')
+                ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_bson', bb.h, name, value.h) ~= 0);
             elseif isa(value, 'BsonOID')
                 p = libpointer('uint8Ptr', value.value);
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_oid', bb.h, name, p) ~= 0);
@@ -81,6 +83,12 @@ classdef BsonBuffer
             calllib('MongoMatlabDriver', 'mongo_bson_buffer_to_bson', bb.h, b.h);
             clear bb.h;
             bb.h = [];
+        end
+
+        function delete(bb)
+            if ~isempty(bb.h) && ~isNull(bb.h)
+                calllib('MongoMatlabDriver', 'mongo_bson_buffer_free', bb.h);
+            end
         end
 
     end

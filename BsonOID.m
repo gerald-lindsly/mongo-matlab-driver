@@ -35,6 +35,10 @@ classdef BsonOID
             p = libpointer('uint8Ptr', oid.value);
             s = calllib('MongoMatlabDriver', 'mongo_bson_oid_to_string', p);
         end
+
+        function display(oid)
+            fprintf(1, '{ $oid : "%s" }\n', oid.toString());
+        end
     end
 end
 

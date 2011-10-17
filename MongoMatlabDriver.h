@@ -6,7 +6,6 @@
 
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
-#define _CRT_SECURE_NO_WARNINGS
 #else
 #define EXPORT
 #endif
@@ -55,7 +54,9 @@ EXPORT int  mongo_bson_buffer_append_timestamp(struct bson_buffer* b, char *name
 EXPORT int  mongo_bson_buffer_start_object(struct bson_buffer* b, char* name);
 EXPORT int  mongo_bson_buffer_finish_object(struct bson_buffer* b);
 EXPORT int  mongo_bson_buffer_start_array(struct bson_buffer* b, char* name);
+EXPORT int  mongo_bson_buffer_append_bson(struct bson_buffer* b, char* name, struct bson_* bs); 
 EXPORT void mongo_bson_buffer_to_bson(struct bson_buffer** b, struct bson_** out);
+EXPORT void mongo_bson_empty(struct bson_** b);
 EXPORT int  mongo_bson_size(struct bson_* b);
 EXPORT int  mongo_bson_buffer_size(struct bson_buffer* b);
 EXPORT void mongo_bson_free(struct bson_* b);
@@ -83,10 +84,10 @@ EXPORT void mongo_bson_iterator_code_scope(struct bson_iterator_* i, struct bson
 EXPORT int mongo_bson_iterator_timestamp(struct bson_iterator_* i, int* increment);
 EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i);
 
-EXPORT int sock_init();
 EXPORT void mongo_create(struct mongo_** conn);
 EXPORT void mmongo_connect(struct mongo_* conn, char* host);
-EXPORT int  mongo_isConnected(struct mongo_* conn);
+EXPORT int  mongo_is_connected(struct mongo_* conn);
+EXPORT int  mongo_is_master(struct mongo_* conn);
 EXPORT void mmongo_destroy(struct mongo_* conn);
 EXPORT void mmongo_replset_init(struct mongo_* conn, char* name);
 EXPORT void mongo_add_seed(struct mongo_* conn, char* host);
@@ -95,15 +96,25 @@ EXPORT void mmongo_disconnect(struct mongo_* conn);
 EXPORT int  mmongo_reconnect(struct mongo_* conn);
 EXPORT int  mmongo_check_connection(struct mongo_* conn);
 EXPORT void mongo_set_timeout(struct mongo_* conn, int timeout);
-EXPORT int mongo_get_timeout(struct mongo_* conn);
+EXPORT int  mongo_get_timeout(struct mongo_* conn);
 EXPORT const char* mongo_get_primary(struct mongo_* conn);
-EXPORT int mongo_get_err(struct mongo_* conn);
-EXPORT int mmongo_insert(struct mongo_* conn, char* ns, struct bson_* b);
-EXPORT int mmongo_update(struct mongo_* conn, char* ns, struct bson_* criteria, struct bson_* objNew, int flags);
-EXPORT int mmongo_remove(struct mongo_* conn, char* ns, struct bson_* criteria);
-EXPORT int mmongo_find_one(struct mongo_* conn, char* ns, struct bson_* query, struct bson_* fields, struct bson_** result);
-EXPORT int mmongo_find(struct mongo_* conn, char* ns, struct bson_* query,  struct bson_* sort, struct bson_* fields, int limit, int skip, int options, struct mongo_cursor_** result);
-EXPORT int mmongo_cursor_next(struct mongo_cursor_* cursor);
-EXPORT int mongo_cursor_value(struct mongo_cursor_* cursor, struct bson_** value);
-EXPORT int mongo_drop_database(struct mongo_* conn, char* db);
-EXPORT int mongo_drop(struct mongo_* conn, char* ns);
+EXPORT int  mongo_get_err(struct mongo_* conn);
+EXPORT int  mmongo_insert(struct mongo_* conn, char* ns, struct bson_* b);
+EXPORT int  mmongo_update(struct mongo_* conn, char* ns, struct bson_* criteria, struct bson_* objNew, int flags);
+EXPORT int  mmongo_remove(struct mongo_* conn, char* ns, struct bson_* criteria);
+EXPORT int  mmongo_find_one(struct mongo_* conn, char* ns, struct bson_* query, struct bson_* fields, struct bson_** result);
+EXPORT int  mmongo_find(struct mongo_* conn, char* ns, struct bson_* query,  struct bson_* sort, struct bson_* fields, int limit, int skip, int options, struct mongo_cursor_** result);
+EXPORT int  mmongo_cursor_next(struct mongo_cursor_* cursor);
+EXPORT int  mongo_cursor_value(struct mongo_cursor_* cursor, struct bson_** value);
+EXPORT void mongo_cursor_free(struct mongo_cursor_* cursor);
+EXPORT double mmongo_count(struct mongo_* conn, char* ns, struct bson_* query);
+EXPORT int  mongo_index_create(struct mongo_* conn, char* ns, struct bson_* key, int options, struct bson_** out);
+EXPORT int  mongo_add_user(struct mongo_* conn, char* db, char* user, char* password);
+EXPORT int  mongo_authenticate(struct mongo_* conn, char* db, char* user, char* password);
+EXPORT int  mongo_command(struct mongo_* conn, char* db, struct bson_* cmd, struct bson_** result);
+EXPORT int  mongo_get_last_err(struct mongo_* conn, char* db, struct bson_** err);
+EXPORT int  mongo_get_prev_err(struct mongo_* conn, char* db, struct bson_** err);
+EXPORT int  mongo_get_server_err(struct mongo_* conn);
+EXPORT char*  mongo_get_server_err_string(struct mongo_* conn);
+EXPORT int  mongo_drop_database(struct mongo_* conn, char* db);
+EXPORT int  mongo_drop(struct mongo_* conn, char* ns);

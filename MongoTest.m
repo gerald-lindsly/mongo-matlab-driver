@@ -35,7 +35,6 @@ B = cat(3, [1 2 3; 4 5 6], [7 8 9; 10 11 12])
 bc = BsonBuffer;
 bc.append('mat2x3x2', B);
 z = bc.finish()
-
 i = z.iterator;
 q = i.value
 
@@ -66,6 +65,7 @@ ba.append('test', 'testing');
 y = ba.finish;
 y.display();
 
+
 bb = BsonBuffer;
 bb.append('name', 'Gerald');
 bb.append('age', int32(48));
@@ -74,8 +74,7 @@ bb.append('foo', 5);
 bb.append('boo', 'buzz');
 bb.append('bar', int64(2));
 bb.appendBinary('bin', uint8(eye(5)), 1);
-oid = BsonOID;
-disp(oid.toString());
+oid = BsonOID
 bb.append('oid', oid);
 bb.append('true', true');
 bb.appendDate('date', now);
@@ -178,6 +177,13 @@ if mongo.isConnected
     criteria = bb.finish;
     mongo.remove(people, criteria);
 
+    mongo.indexCreate(people, 'name', Mongo.index_unique);
+
+    bb = BsonBuffer;
+    bb.append('city', true);
+    key = bb.finish;
+    mongo.indexCreate(people, key);
+
     bb = BsonBuffer;
     bb.append('city', 'Natick');
     query = bb.finish;
@@ -190,4 +196,47 @@ if mongo.isConnected
             fprintf(1, '\n');
         end
     end
+
+    num = mongo.count(people)
+
+    bb = BsonBuffer;
+    bb.append('count', 'people');
+    cmd = bb.finish;
+    mongo.command(db, cmd)
+
+    mongo.simpleCommand(db, 'count', 'people')
+
+    mongo.resetErr(db);
+
+    mongo.simpleCommand(db, 'forceerror', true)
+
+    mongo.getLastErr(db)
+
+    bb = BsonBuffer;
+    bb.append('name', 'dupkey');
+    doc = bb.finish;
+
+    mongo.insert(people, doc)
+    mongo.insert(people, doc)
+
+    mongo.getLastErr(db)
+
+    mongo.getServerErr
+    mongo.getServerErrString
+
+    mongo.getPrevErr(db)
+
+    mongo.resetErr(db)
+
+    mongo.getLastErr(db)
+
+    mongo.addUser('Gerald', 'P97gwep16');
+
+    auth = mongo.authenticate('Gerald', 'P97gwep16')
+
+    auth = mongo.authenticate('Gerald', 'BadPass21')
+
+    auth = mongo.authenticate('Unsub', 'BadUser67')
+
+    master = mongo.isMaster
 end
