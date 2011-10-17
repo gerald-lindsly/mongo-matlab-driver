@@ -115,7 +115,9 @@ v = i.value
 
 mongo = Mongo();
 if mongo.isConnected
-    mongo.getPrimary
+    primary = mongo.getPrimary
+    socket = mongo.getSocket
+    hosts = mongo.getHosts
 
     db = 'test';
     % mongo.dropDatabase(db); %
@@ -239,4 +241,14 @@ if mongo.isConnected
     auth = mongo.authenticate('Unsub', 'BadUser67')
 
     master = mongo.isMaster
+
+    mongo.getDatabases
+
+    mongo.getDatabaseCollections(db)
+
+    mongo.rename(people, 'test.rename')
+    mongo.rename('test.rename', people)
+    mongo.rename('noname', 'dontexist')
+
+    mongo.getLastErr('admin');
 end

@@ -4,15 +4,22 @@ classdef Mongo < handle
     end
 
     properties (Constant)
-      update_upsert = uint32(1);
-      update_multi  = uint32(2);
-      update_basic  = uint32(4);
+        update_upsert = uint32(1);
+        update_multi  = uint32(2);
+        update_basic  = uint32(4);
 
-      index_unique     = uint32(1);
-      index_drop_dups  = uint32(4);
-      index_background = uint32(8);
-      index_sparse     = uint32(16);
-   end
+        index_unique     = uint32(1);
+        index_drop_dups  = uint32(4);
+        index_background = uint32(8);
+        index_sparse     = uint32(16);
+
+        cursor_tailable   = uint32(2);   % Create a tailable cursor. %
+        cursor_slave_ok   = uint32(4);   %*< Allow queries on a non-primary node. %
+        cursor_no_timeout = uint32(16);  %*< Disable cursor timeouts. %
+        cursor_await_data = uint32(32);  %*< Momentarily block for more data. %
+        cursor_exhaust    = uint32(64);  %*< Stream in multiple 'more' packages. %
+        cursor_partial    = uint32(128); %*< Allow reads even if a shard is down. %
+    end
 
     methods
         function m = Mongo(varargin)
@@ -89,8 +96,28 @@ classdef Mongo < handle
             host = calllib('MongoMatlabDriver', 'mongo_get_primary', m.h);
         end
 
+        function socket = getSocket(m)
+            socket = calllib('MongoMatlabDriver', 'mongo_get_socket', m.h);
+        end
+
+        function hosts = getHosts(m)
+            hosts = calllib('MongoMatlabDriver', 'mongo_get_hosts', m.h);
+        end
+
         function err = getErr(m)
             err = calllib('MongoMatlabDriver', 'mongo_get_err', m.h);
+        end
+
+        function databases = getDatabases(m)
+            databases = calllib('MongoMatlabDriver', 'mongo_get_databases', m.h);
+        end
+
+        function collections = getDatabaseCollections(m, db)
+            collections = calllib('MongoMatlabDriver', 'mongo_get_database_collections', m.h, db);
+        end
+
+        function ok = rename(m, from_ns, to_ns)
+            ok = (calllib('MongoMatlabDriver', 'mongo_rename', m.h, from_ns, to_ns) ~= 0);
         end
 
         function ok = insert(m, ns, b)

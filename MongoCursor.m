@@ -33,17 +33,6 @@ classdef MongoCursor < handle
         function delete(cursor)
             if ~isNull(cursor.h)
                 calllib('MongoMatlabDriver', 'mongo_cursor_free', cursor.h);
-                clear cursor.h
-                cursor.h = [];
-            end
-            if ~isNull(cursor.query.h)
-                cursor.query.clear;
-            end
-            if ~isNull(cursor.sort.h)
-                cursor.sort.clear;
-            end
-            if ~isNull(cursor.fields.h)
-                cursor.fields.clear;
             end
         end
 

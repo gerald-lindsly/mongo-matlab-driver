@@ -140,9 +140,122 @@ EXPORT const char* mongo_get_primary(struct mongo_* conn) {
 }
 
 
+EXPORT int mongo_get_socket(struct mongo_* conn) {
+    mongo* conn_ = (mongo*)conn;
+    return conn_->sock;
+}
+
+
+EXPORT mxArray* mongo_get_hosts(struct mongo_* conn) {
+    mongo* conn_ = (mongo*)conn;
+    mongo_replset* r = conn_->replset;
+    mxArray* ret;
+    mongo_host_port* hp;
+    int count = 0;
+    int i = 0;
+    if (!r) return 0;
+    for (hp = r->hosts; hp; hp = hp->next)
+        ++count;
+    ret = mxCreateCellMatrix(count, 1);
+    for (hp = r->hosts; hp; hp = hp->next, i++)
+        mxSetCell(ret, i++, mxCreateString(_get_host_port(hp)));
+    return ret;
+}
+
+
+
 EXPORT int mongo_get_err(struct mongo_* conn) {
     mongo* conn_ = (mongo*)conn;
     return conn_->err;
+}
+
+
+EXPORT mxArray* mongo_get_databases(struct mongo_* conn) {
+    bson out;
+    mxArray* ret;
+    int count = 0;
+    bson_iterator it, databases, database;
+    int i = 0;
+
+    if (mongo_simple_int_command((mongo*)conn, "admin", "listDatabases", 1, &out) != MONGO_OK) {
+        bson_destroy(&out);
+        return 0;
+    }
+    bson_iterator_init(&it, &out);
+    bson_iterator_next(&it);
+    bson_iterator_subiterator(&it, &databases);
+    while (bson_iterator_next(&databases)) {
+        const char* name;
+        bson_iterator_subiterator(&databases, &database);
+        bson_iterator_next(&database);
+        name = bson_iterator_string(&database);
+        if (strcmp(name, "admin") != 0 && strcmp(name, "local") != 0)
+            count++;
+    }
+    ret = mxCreateCellMatrix(count, 1);
+    bson_iterator_subiterator(&it, &databases);
+    while (bson_iterator_next(&databases)) {
+        const char* name;
+        bson_iterator_subiterator(&databases, &database);
+        bson_iterator_next(&database);
+        name = bson_iterator_string(&database);
+        if (strcmp(name, "admin") != 0 && strcmp(name, "local") != 0)
+            mxSetCell(ret, i++, mxCreateString(name));
+    }
+    bson_destroy(&out);
+    return ret;
+}
+
+
+EXPORT mxArray* mongo_get_database_collections(struct mongo_* conn, char* db) {
+    mxArray* ret;
+    mongo* conn_ = (mongo*)conn;
+    mongo_cursor* cursor;
+    char ns[512];
+    int count = 0;
+    int i = 0;
+    bson empty;
+    bson_empty(&empty);
+    strcpy(ns, db);
+    strcat(ns, ".system.namespaces");
+    cursor = mongo_find(conn_, ns, NULL, &empty, 0, 0, 0);
+    while (cursor && mongo_cursor_next(cursor) == MONGO_OK) {
+        bson_iterator iter;
+        if (bson_find(&iter, &cursor->current, "name")) {
+            const char* name = bson_iterator_string(&iter);
+            if (strstr(name, ".system.") || strchr(name, '$'))
+                continue;
+            ++count;
+        }
+    }
+    mongo_cursor_destroy(cursor);
+    cursor = mongo_find(conn_, ns, &empty, &empty, 0, 0, 0);
+    ret = mxCreateCellMatrix(count, 1);
+    while (cursor && mongo_cursor_next(cursor) == MONGO_OK) {
+        bson_iterator iter;
+        if (bson_find(&iter, &cursor->current, "name")) {
+            const char* name = bson_iterator_string(&iter);
+            if (strstr(name, ".system.") || strchr(name, '$'))
+                continue;
+            mxSetCell(ret, i++, mxCreateString(name));
+        }
+    }
+    mongo_cursor_destroy(cursor);
+    return ret;
+}
+
+
+EXPORT int mongo_rename(struct mongo_* conn, char* from_ns, char* to_ns) {
+    mongo* conn_ = (mongo*)conn;
+    bson cmd;
+    int ret;
+    bson_init(&cmd);
+    bson_append_string(&cmd, "renameCollection", from_ns);
+    bson_append_string(&cmd, "to", to_ns);
+    bson_finish(&cmd);
+    ret = (mongo_run_command(conn_, "admin", &cmd, NULL) == MONGO_OK);
+    bson_destroy(&cmd);
+    return ret;
 }
 
 
