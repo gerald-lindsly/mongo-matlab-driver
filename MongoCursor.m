@@ -4,9 +4,20 @@ classdef MongoCursor < handle
         query
         sort
         fields
+        mongo  % hold a reference to prevent release %
         limit   = int32(0)
         skip    = int32(0)
         options = uint32(0)
+    end
+
+    properties (Constant)
+        % Options: %
+        tailable   = uint32(2);   % Create a tailable cursor. %
+        slave_ok   = uint32(4);   %*< Allow queries on a non-primary node. %
+        no_timeout = uint32(16);  %*< Disable cursor timeouts. %
+        await_data = uint32(32);  %*< Momentarily block for more data. %
+        exhaust    = uint32(64);  %*< Stream in multiple 'more' packages. %
+        partial    = uint32(128); %*< Allow reads even if a shard is down. %
     end
 
     methods

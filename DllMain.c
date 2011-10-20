@@ -11,6 +11,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     sock_init();
     bson_printf = mexPrintf;
     bson_errprintf = mexPrintf;
+    set_bson_err_handler(mexErrMsgTxt);
     return TRUE;
 }
 

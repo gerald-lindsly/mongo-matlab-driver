@@ -52,9 +52,9 @@ i = z.iterator;
 q = i.value
 class(q)
 
-x = magic(4) >= 9
+lmat4x4 = magic(4) >= 9
 bc = BsonBuffer;
-bc.append('lmat4x4', x);
+bc.append('lmat4x4', lmat4x4);
 z = bc.finish()
 i = z.iterator;
 q = i.value
@@ -199,6 +199,20 @@ if mongo.isConnected
         end
     end
 
+    bb = BsonBuffer;
+    bb.append('name', 'Harry');
+    cursor = MongoCursor(bb.finish);
+    bb = BsonBuffer;
+    bb.append('name', true);
+    bb.append('city', true);
+    cursor.fields = bb.finish;
+    if mongo.find(people, cursor)
+        while (cursor.next)
+            display(cursor.value);
+            fprintf(1, '\n');
+        end
+    end
+
     num = mongo.count(people)
 
     bb = BsonBuffer;
@@ -232,6 +246,15 @@ if mongo.isConnected
 
     mongo.getLastErr(db)
 
+    bb = BsonBuffer;
+    bb.startObject('name');
+    bb.append('$badop', true);
+    bb.finishObject;
+    query = bb.finish;
+    mongo.findOne(people, query)
+
+    mongo.getServerErrString
+
     mongo.addUser('Gerald', 'P97gwep16');
 
     auth = mongo.authenticate('Gerald', 'P97gwep16')
@@ -251,4 +274,55 @@ if mongo.isConnected
     mongo.rename('noname', 'dontexist')
 
     mongo.getLastErr('admin');
+
+    m = [1 2 3];
+
+    gfs = GridFS(mongo, 'grid')
+
+    gfs.storeFile('MongoTest.m')
+    gfs.storeFile('MongoStart.m')
+
+    gfs.removeFile('MongoTest.m')
+
+    gfs.store(m, 'M')
+
+    gfs.store(lmat4x4, 'lmat4x4');
+
+    gfw = gfs.writerCreate('gfwTest');
+
+    gfw.write(c)
+    gfw.finish()
+
+    gf = gfs.find('MongoStart.m')
+    filename = gf.getFilename
+    length = gf.getLength
+    chunkSize = gf.getChunkSize
+    chunkCount = gf.getChunkCount
+    type = gf.getContentType
+    datestr(gf.getUploadDate)
+    md5 = gf.getMD5
+
+    gf.getChunk(0)
+    gf.getChunk(1) % empty %
+
+    cursor = gf.getChunks(0, 1);
+    while (cursor.next)
+        display(cursor.value);
+    end
+
+
+    gf = gfs.find('M')
+    m = [7 8 9];
+    gf.read(m)
+    m
+
+    gf = gfs.find('lmat4x4');
+    l2mat4x4 = magic(4) <= 3
+    gf.read(l2mat4x4);
+    l2mat4x4
+
+    gf.seek(4);
+    lmat3x3 = magic(3) >= 4
+    gf.read(lmat3x3);
+    lmat3x3
 end

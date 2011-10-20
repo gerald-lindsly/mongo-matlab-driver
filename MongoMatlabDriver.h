@@ -34,6 +34,14 @@ struct mongo_cursor_ {
     int dummy;
 };
 
+struct gridfs_ {
+    int dummy;
+};
+
+struct gridfile_ {
+    int dummy;
+};
+
 
 EXPORT void mongo_bson_buffer_create(struct bson_buffer** b);
 EXPORT void mongo_bson_buffer_free(struct bson_buffer* b);
@@ -98,7 +106,7 @@ EXPORT int  mmongo_check_connection(struct mongo_* conn);
 EXPORT void mongo_set_timeout(struct mongo_* conn, int timeout);
 EXPORT int  mongo_get_timeout(struct mongo_* conn);
 EXPORT const char* mongo_get_primary(struct mongo_* conn);
-EXPORT int mongo_get_socket(struct mongo_* conn);
+EXPORT int  mongo_get_socket(struct mongo_* conn);
 EXPORT mxArray* mongo_get_hosts(struct mongo_* conn);
 EXPORT int  mongo_get_err(struct mongo_* conn);
 EXPORT mxArray* mongo_get_databases(struct mongo_* conn);
@@ -123,3 +131,29 @@ EXPORT int  mongo_get_server_err(struct mongo_* conn);
 EXPORT char*  mongo_get_server_err_string(struct mongo_* conn);
 EXPORT int  mongo_drop_database(struct mongo_* conn, char* db);
 EXPORT int  mongo_drop(struct mongo_* conn, char* ns);
+
+EXPORT int  mongo_gridfs_create(struct mongo_* conn, char* db, char* prefix, struct gridfs_** gfs);
+EXPORT void mongo_gridfs_destroy(struct gridfs_* gfs);
+EXPORT int  mongo_gridfs_store_file(struct gridfs_* gfs, char* filename, char* remoteName, char* contentType);
+EXPORT void mongo_gridfs_remove_file(struct gridfs_* gfs, char* remoteName);
+EXPORT int  mongo_gridfs_store(struct gridfs_* gfs, mxArray* data, char* remoteName, char* contentType);
+EXPORT void mongo_gridfile_writer_create(struct gridfs_* gfs, char* remoteName, char* contentType, struct gridfile_** gf);
+EXPORT void mongo_gridfile_writer_write(struct gridfile_* gf, mxArray* data);
+EXPORT int  mongo_gridfile_writer_finish(struct gridfile_* gf);
+EXPORT int  mongo_gridfs_find(struct gridfs_* gfs, struct bson_* query, struct gridfile_** gf);
+EXPORT void mongo_gridfile_destroy(struct gridfile_* gf);
+EXPORT const char* mongo_gridfile_get_filename(struct gridfile_* gf);
+EXPORT double mongo_gridfile_get_length(struct gridfile_* gf);
+EXPORT int mongo_gridfile_get_chunk_size(struct gridfile_* gf);
+EXPORT int mongo_gridfile_get_chunk_count(struct gridfile_* gf);
+EXPORT const char* mongo_gridfile_get_content_type(struct gridfile_* gf);
+EXPORT double mongo_gridfile_get_upload_date(struct gridfile_* gf);
+EXPORT const char* mongo_gridfile_get_md5(struct gridfile_* gf);
+EXPORT void mongo_gridfile_get_descriptor(struct gridfile_* gf, struct bson_** out);
+EXPORT int mongo_gridfile_get_metadata(struct gridfile_* gf, struct bson_** out);
+EXPORT int mongo_gridfile_get_chunk(struct gridfile_* gf, int i, struct bson_** out);
+EXPORT int mongo_gridfile_get_chunks(struct gridfile_* gf, int start, int count, struct mongo_cursor_** out);
+EXPORT int mongo_gridfile_read(struct gridfile_* gf, mxArray* data);
+EXPORT double mongo_gridfile_get_pos(struct gridfile_* gf);
+EXPORT double mongo_gridfile_seek(struct gridfile_* gf, double offset);
+

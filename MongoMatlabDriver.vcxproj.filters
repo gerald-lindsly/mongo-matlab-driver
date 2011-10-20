@@ -44,6 +44,9 @@
     <ClCompile Include="api_mongo.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="api_gridfs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mongo-c-driver-src\bson.h">
@@ -112,6 +115,15 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="MongoCursor.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="GridFS.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="GridfileWriter.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Gridfile.m">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

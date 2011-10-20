@@ -12,13 +12,6 @@ classdef Mongo < handle
         index_drop_dups  = uint32(4);
         index_background = uint32(8);
         index_sparse     = uint32(16);
-
-        cursor_tailable   = uint32(2);   % Create a tailable cursor. %
-        cursor_slave_ok   = uint32(4);   %*< Allow queries on a non-primary node. %
-        cursor_no_timeout = uint32(16);  %*< Disable cursor timeouts. %
-        cursor_await_data = uint32(32);  %*< Momentarily block for more data. %
-        cursor_exhaust    = uint32(64);  %*< Stream in multiple 'more' packages. %
-        cursor_partial    = uint32(128); %*< Allow reads even if a shard is down. %
     end
 
     methods
@@ -56,7 +49,7 @@ classdef Mongo < handle
             calllib('MongoMatlabDriver', 'mongo_add_seed', m.h, host);
         end
         
-        function b = connect(m)
+        function b = replsetConnect(m)
             b = (calllib('MongoMatlabDriver', 'mmongo_replset_connect', m.h, host) ~= 0);
         end
 
@@ -161,6 +154,7 @@ classdef Mongo < handle
             if isempty(cursor.fields)
                 cursor.fields = Bson;
             end
+            cursor.mongo = m;
             found = (calllib('MongoMatlabDriver', 'mmongo_find', m.h, ns, cursor.query.h, cursor.sort.h, cursor.fields.h, ...
                              cursor.limit, cursor.skip, cursor.options, cursor.h) ~= 0);
         end
@@ -262,5 +256,17 @@ classdef Mongo < handle
             ok = (calllib('MongoMatlabDriver', 'mongo_drop', m.h, ns) ~= 0);
         end
 
+
+        function gfs = gridFSCreate(m, db, varargin)
+            if nargin > 3
+                error('Mongo:gridFSCreate', 'Too many parameters');
+            end
+            if nargin == 3
+                prefix = varargin{1}
+            else
+                prefix = 'fs';
+            end
+            gfs = GridFS(m, db, prefix);
+        end
     end
 end
