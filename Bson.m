@@ -1,10 +1,18 @@
 classdef Bson < handle
+    % Bson - Binary JSON class
+    % Objects of class "mongo.bson" are used to store BSON documents.
+    % BSON is the form that MongoDB uses to store documents in its database.
+    % MongoDB network traffic also uses BSON in messages.
+    %
+    % See http://www.mongodb.org/display/DOCS/BSON
+
     properties
-        h
+        h   % lib.pointer handle to external data
     end
 
     methods (Static)
         function display_(i, depth)
+            % Internal display function (called by display())
             while i.next()
                 t = i.type;
                 if t == BsonType.EOO
@@ -59,6 +67,7 @@ classdef Bson < handle
         end
 
         function b = empty()
+            % b = empty()  Construct an empy BSON document.
             b = Bson;
             calllib('MongoMatlabDriver', 'mongo_bson_empty', b.h);
         end
@@ -66,10 +75,14 @@ classdef Bson < handle
 
     methods
         function b = Bson()
+            % b = Bson()  Construct a null Bson document.
+            % Mainly used internally, but may be used to specify an empty
+            % BSON document argument to some functions.
             b.h = libpointer('bson_Ptr');
         end
 
         function s = size(b)
+            % s = b.size()  Returns the size of this BSON document in bytes.
             if isNull(b.h)
                 error('Bson:size', 'Uninitialized BSON');
             end
@@ -77,6 +90,7 @@ classdef Bson < handle
         end
 
         function i = iterator(b)
+            % i = b.iterator()  Returns a BsonIterator that points to beginning of this BSON.
             if isNull(b.h)
                 error('Bson:iterator', 'Uninitialized BSON');
             end
@@ -84,17 +98,25 @@ classdef Bson < handle
         end
 
         function i = find(b, name)
+            % i = b.find(name)  Search this document for a field of the given name.
+            % If found, returns a BsonIterator that points to the field;
+            % otherwise, returns empty ([]).
+            % name may also be a dotted reference to a subfield.  For
+            % example: v = b.value("address.city");
             if isNull(b.h)
                 error('Bson:find', 'Uninitialized BSON');
             end
             i = BsonIterator;
-            calllib('MongoMatlabDriver', 'mongo_bson_find', b.h, name, i.h);
-            if isNull(i.h)
+            if ~calllib('MongoMatlabDriver', 'mongo_bson_find', b.h, name, i.h)
                 i = [];
             end
         end
 
         function v = value(b, name)
+            % v = b.value(name)  Returns the value of a field within this BSON.
+            % Returns empty ([]) if the name is not found.
+            % name may also be a dotted reference to a subfield.  For
+            % example: v = b.value("address.city");
             i = b.find(name);
             if isempty(i)
                 v = [];
@@ -104,12 +126,17 @@ classdef Bson < handle
         end
 
         function display(b)
+            % b.display()  Display this BSON document.
             if ~isNull(b.h)
                 b.display_(b.iterator, 0);
             end
         end
 
         function delete(b)
+            % Release this BSON document.
+            % It is not necessary to call this function by user code;
+            % it will be called automatically by Matlab when the
+            % document is no longer referenced.
             calllib('MongoMatlabDriver', 'mongo_bson_free', b.h);
         end
 

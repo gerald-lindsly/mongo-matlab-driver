@@ -1,11 +1,16 @@
 classdef GridfileWriter < handle
+    % GridfileWriter - Used to write buffered data to MongoDB's GridFS
     properties
-        h
-        gfs  % hold a reference to prevent release %
+        h   % lib.pointer to external data
+        gfs % hold a reference to prevent release %
     end
 
     methods
         function gfw = GridfileWriter(gfs, remoteName, varargin)
+            % gfw = GridfileWriter(gfs, remoteName, optional contentType)
+            % Contruct a Gridfile writer given a GridFS object and the
+            % name of the remote file.  contentType is optional and should be
+            % a MIME-type string if specified.
             if nargin > 3
                 error('GridfileWriter:GridfileWriter', 'Too many arguments');
             end
@@ -20,6 +25,8 @@ classdef GridfileWriter < handle
 
 
         function write(gfw, data)
+            % gfw.write(data)  write data to this GridfileWriter
+            % Numeric, char, and logical arrays are supported
             calllib('MongoMatlabDriver', 'mongo_gridfile_writer_write', gfw.h, data);
         end
 

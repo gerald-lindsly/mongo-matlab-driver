@@ -1,6 +1,7 @@
 classdef BsonType < uint32
+    % BsonType - An enumeration of the types of fields with BSON documents.
     enumeration
-        EOO         (0)
+        EOO         (0) % End Of Object
         DOUBLE      (1)
         STRING      (2)
         OBJECT      (3)

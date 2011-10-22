@@ -455,9 +455,3 @@ EXPORT int mongo_drop(struct mongo_* conn, char* ns) {
     *p = '\0';
     return (mongo_cmd_drop_collection(conn_, ns, p+1, NULL) == MONGO_OK);
 }
-
-
-
-EXPORT void mongo_set_array(mxArray* m) {
-    mxGetPr(m)[0] = 5.0;
-}

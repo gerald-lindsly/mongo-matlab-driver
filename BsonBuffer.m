@@ -1,19 +1,42 @@
 classdef BsonBuffer < handle
+    % BsonBuffer - used to build Bson objects
     properties
-        h
+        h   % lib.pointer to external data
     end
 
     methods
         function bb = BsonBuffer()
+            % bb = BsonBuffer()  Construct a new buffer.
             bb.h = libpointer('bson_bufferPtr');
             calllib('MongoMatlabDriver', 'mongo_bson_buffer_create', bb.h);
         end
 
-        function s = size(b)
-            s = calllib('MongoMatlabDriver', 'mongo_bson_buffer_size', b.h);
+        function s = size(bb)
+            % s = bb.size()  Return the size of the buffer.
+            % This is equal to the size of the BSON document that would be output
+            % by finish().
+            s = calllib('MongoMatlabDriver', 'mongo_bson_buffer_size', bb.h);
         end
 
         function ok = append(bb, name, value)
+            % ok = bb.append(name, value) Append a name/value pair into this buffer.
+            % Returns true(1) if the data was successfully appended; otherwise, false(0).
+            % The type of value is detected and a wide variety of types are supported
+            % by this function including multidimensional arrays of numerics and logicals.
+            % The mapping to BsonTypes is as follows:
+            % [] (empty)        NULL
+            % Bson              OBJECT
+            % BsonOid           OID
+            % BsonRegex         REGEX
+            % BsonCodeWScope    CODEWSCOPE
+            % BsonTimestamp     TIMESTAMP
+            % logical           BOOL
+            % char              STRING
+            % int8, uint8, int16, uint16, int32, uint32     INT
+            % single, double    DOUBLE
+            % complex double    subobject { "r" : real, "i" : imag }
+            % There are some other 'append' functions to handle the BsonTypes not detected
+            % by this generic function.
             if isempty(value)
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_null', bb.h, name) ~= 0);
             elseif isa(value, 'Bson')
@@ -32,7 +55,7 @@ classdef BsonBuffer < handle
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append', bb.h, name, value) ~= 0);
             elseif isa(value, 'char')
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_string', bb.h, name, value) ~= 0);
-            elseif ~isreal(value) && ~isa(value, 'double')
+            elseif isnumeric(value) && ~isreal(value) && ~isa(value, 'double')
                 error('BsonBuffer:append', 'Only doubles are supported for complex values');
             elseif isnumeric(value)
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append', bb.h, name, value) ~= 0);
@@ -43,6 +66,10 @@ classdef BsonBuffer < handle
         end
 
         function ok = appendBinary(bb, name, value, varargin)
+            % ok = bb.appendBinary(name, value, ...)  Append a BsonType.BINDATA field
+            % Returns true(1) if the data was successfully appended; otherwise, false(0).
+            % only int8 or uint8 value types are supported.
+            % Optionally, specify the subtype of the binary data.
             if isa(value, 'int8') | isa(value, 'uint8')
                 t = 0;
                 if nargin > 3
@@ -55,30 +82,44 @@ classdef BsonBuffer < handle
         end
 
         function ok = appendDate(bb, name, value)
+            % ok = bb.appendDate(name, value)  Append date(s) to this buffer.
+            % Returns true(1) if the data was successfully appended; otherwise, false(0).
+            % Multidimension arrays of datenums are supported.
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_date', bb.h, name, value) ~= 0);
         end
 
         function ok = appendCode(bb, name, value)
+            % ok = bb.appendCode(name, value)  Append a BsonType.CODE field to this buffer.
+            % Returns true(1) if the data was successfully appended; otherwise, false(0).
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_code', bb.h, name, value) ~= 0);
         end
 
         function ok = appendSymbol(bb, name, value)
+            % ok = bb.appendSymbol(name, value)  Append a BsonType.SYMBOL field to this buffer.
+            % Returns true(1) if the data was successfully appended; otherwise, false(0).
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_symbol', bb.h, name, value) ~= 0);
         end
 
         function ok = startObject(bb, name)
+            % ok = bb.startObject(name)  Start a nested subobject within this buffer.
+            % Returns true(1) if the marker was successfully appended; otherwise, false(0).
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_start_object', bb.h, name) ~= 0);
         end
 
         function ok = finishObject(bb)
+            % ok = bb.finishObject(name)  Finish a nested subobject.
+            % Returns true(1) if the marker was successfully appended; otherwise, false(0).
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_finish_object', bb.h) ~= 0);
         end
 
         function ok = startArray(bb, name)
+            % ok = bb.startArray(name)  Start an array within this buffer.
+            % Returns true(1) if the marker was successfully appended; otherwise, false(0).
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_start_array', bb.h, name) ~= 0);
         end
 
         function b = finish(bb)
+            % b = bb.finish()  Finish with this buffer and turn it into a Bson object.
             b = Bson;
             calllib('MongoMatlabDriver', 'mongo_bson_buffer_to_bson', bb.h, b.h);
             clear bb.h;
@@ -86,6 +127,9 @@ classdef BsonBuffer < handle
         end
 
         function delete(bb)
+            % Release this buffer.
+            % It is not necessary to call this function explicitly as Matlab will
+            % call it automatically when this buffer is no longer referenced.
             if ~isempty(bb.h) && ~isNull(bb.h)
                 calllib('MongoMatlabDriver', 'mongo_bson_buffer_free', bb.h);
             end

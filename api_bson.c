@@ -365,13 +365,41 @@ EXPORT void mongo_bson_iterator_create(struct bson_* b, struct bson_iterator_** 
 }
 
 
-EXPORT void mongo_bson_find(struct bson_* b, char* name, struct bson_iterator_** i) {
-    bson_iterator* _i = (bson_iterator*)malloc(sizeof(bson_iterator));
-    if (bson_find(_i, (bson*) b, name) == BSON_EOO) {
-        free(_i);
-        _i = 0;
+EXPORT int mongo_bson_find(struct bson_* b, char* name, struct bson_iterator_** i) {
+    bson* _b = (bson*)b;
+    bson sub;
+    bson_iterator iter;
+    const char* next = name;
+    do {
+        int t;
+        char *p;
+        char prefix[2048];
+        int len;
+        if (bson_find(&iter, _b, next) != BSON_EOO) {
+            bson_iterator* _i = (bson_iterator*)malloc(sizeof(bson_iterator));
+            *_i = iter;
+            *i = (struct bson_iterator_*)_i;
+            return 1;
+        }
+        p = strchr((char*)next, '.');
+        if (!p)
+            return 0;
+        len = (int)(p - next);
+        strncpy(prefix, next, len);
+        prefix[len] = '\0';
+        if ((t = bson_find(&iter, _b, prefix)) == BSON_EOO)
+            return 0;
+        if (t == BSON_ARRAY || t == BSON_OBJECT) {
+            bson_iterator_subobject(&iter, &sub);
+            _b = &sub;
+            next = p + 1;
+        }
+        else
+            return 0;
     }
-    *i = (struct bson_iterator_*)_i;
+    while (1);
+    /* never gets here */
+    return 0;
 }
 
 

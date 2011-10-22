@@ -1,10 +1,19 @@
 classdef BsonIterator < handle
+    % BsonIterator - Used to step through BSON documents
+
     properties
-        h
+        h   % lib.pointer handle to external data
     end
 
     methods
         function i = BsonIterator(varargin)
+            % i = BsonIterator(bson)  Create an iterator for stepping through a Bson document.
+            % May be passed a Bson object or another iterator that
+            % points to a subobject.
+            % i = BsonIterator(iter)
+            % This function is not usually called directly.  It is preferable to use
+            % i = bson.iterator() or i = iter.subiterator().
+            % Internally called with no arguments to create an uninitialized iterator.
             i.h = libpointer('bson_iterator_Ptr');
             if nargin > 0
                 b = varargin{1};
@@ -17,6 +26,7 @@ classdef BsonIterator < handle
         end
 
         function t = type(i)
+            % t = i.type()  Returns the type of the field pointed to by this iterator. See BsonType.
             if isempty(i.h) || isNull(i.h)
                 t = BsonType.EOO
             else
@@ -25,6 +35,14 @@ classdef BsonIterator < handle
         end
 
         function t = next(i)
+            % t = i.next()  Step this iterator to the first or next field of a Bson document.
+            % Returns the BsonType of the next field or BsonType.EOO if there are no more fields
+            % in the document.
+            % Example:
+            % i = b.iterator;
+            % while (i.next())
+            %     display(i.value());
+            % end
             if isempty(i.h) || isNull(i.h)
                 t = BsonType.EOO
             else
@@ -33,10 +51,33 @@ classdef BsonIterator < handle
         end
 
         function k = key(i)
+            % k = i.key()  Return the key (name) of the field pointed to by this iterator.
             k = calllib('MongoMatlabDriver', 'mongo_bson_iterator_key', i.h);
         end
 
         function v = value(i)
+            % v = i.value()  Returns the value of the field pointed to by this iterator.
+            % Multidimensional values are detected and returned as appropriate.
+            % The mapping from BsonTypes to Matlab types is as follows:
+            % EOO           []
+            % DOUBLE        double
+            % STRING        char array
+            % OBJECT        complex if { "r" : real, "i" : imag } is detected;
+            %                   otherwise, error.
+            % BINDATA       [1, n] array of uint8 bytes.  See binaryType().
+            % UNDEFINED     []
+            % OID           BsonOID
+            % BOOL          logical
+            % DATE          double datenum
+            % NULL          []
+            % REGEX         BsonRegex
+            % DEBREF        Deprecated (not supported)
+            % CODE          char array
+            % SYMBOL        char array
+            % CODEWSCOPE    BsonCodeWScope
+            % INT           int32
+            % TIMESTAMP     BsonTimestamp
+            % LONG          int64
             switch (i.type)
                 case {BsonType.EOO, BsonType.UNDEFINED, BsonType.NULL}
                     v = [];
@@ -102,6 +143,8 @@ classdef BsonIterator < handle
         end
 
         function t = binaryType(i)
+            % t = i.binaryType()  Return the subtype of a binary BSON field.
+            % (if this iterator points to one).
             if i.type == BsonType.BINDATA
                t = calllib('MongoMatlabDriver', 'mongo_bson_iterator_bin_type', i.h);
             else
@@ -110,10 +153,14 @@ classdef BsonIterator < handle
         end
 
         function si = subiterator(i)
+            % si = i.subiterator()  Returns an iterator to a subobject or array.
             si = BsonIterator(i);
         end
 
         function delete(i)
+            % Release this iterator.
+            % It is not necessary to called this function directly.  Matlab will call this
+            % automatically when this iterator is no longer referenced.
             calllib('MongoMatlabDriver', 'mongo_bson_iterator_free', i.h);
         end
 

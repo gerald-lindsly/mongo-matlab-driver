@@ -23,6 +23,9 @@ bc.append('vmat3x1', x);
 z = bc.finish()
 i = z.iterator;
 v = i.value
+v = z.value('vmat3x1.1.0')
+v = z.value('vmat3x1.1')
+v = z.value('3.3')
 
 x = [1,2,3]
 bc = BsonBuffer;
@@ -103,7 +106,8 @@ if ~isempty(i)
 end
 
 w.value('oid')
-w.value('timestamp')
+ts = w.value('timestamp')
+class(ts.increment)
 
 ds = [now, now + 1];
 bc = BsonBuffer;
@@ -211,6 +215,7 @@ if mongo.isConnected
             display(cursor.value);
             fprintf(1, '\n');
         end
+        clear cursor
     end
 
     num = mongo.count(people)
@@ -230,10 +235,10 @@ if mongo.isConnected
 
     bb = BsonBuffer;
     bb.append('name', 'dupkey');
-    doc = bb.finish;
+    d = bb.finish;
 
-    mongo.insert(people, doc)
-    mongo.insert(people, doc)
+    mongo.insert(people, d)
+    mongo.insert(people, d)
 
     mongo.getLastErr(db)
 
@@ -325,4 +330,6 @@ if mongo.isConnected
     lmat3x3 = magic(3) >= 4
     gf.read(lmat3x3);
     lmat3x3
+    gf.getPos
+    gf.read(lmat3x3) % fails %
 end

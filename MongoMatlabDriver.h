@@ -68,7 +68,7 @@ EXPORT void mongo_bson_empty(struct bson_** b);
 EXPORT int  mongo_bson_size(struct bson_* b);
 EXPORT int  mongo_bson_buffer_size(struct bson_buffer* b);
 EXPORT void mongo_bson_free(struct bson_* b);
-EXPORT void mongo_bson_find(struct bson_* b, char* name, struct bson_iterator_** i);
+EXPORT int mongo_bson_find(struct bson_* b, char* name, struct bson_iterator_** i);
 EXPORT void mongo_bson_iterator_create(struct bson_* b, struct bson_iterator_** i);
 EXPORT void mongo_bson_iterator_free(struct bson_iterator_* i);
 EXPORT int  mongo_bson_iterator_type(struct bson_iterator_* i);
