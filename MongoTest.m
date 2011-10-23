@@ -1,13 +1,16 @@
-MongoStart;
+MongoStart; % load the dll
 
-x = [1,2,3; 4,5,6]
-size(x)
-bc = BsonBuffer;
-bc.append('mat2x3', x);
-z = bc.finish()
-i = z.iterator;
-v = i.value
+% Test appending various array types to a Bson buffer
+% and pull them out with BsonIterator.value
+x = [1,2,3; 4,5,6]          % Construct a 2x3 matrix (doubles) and display
+bc = BsonBuffer;            % Construct a buffer to store it in
+bc.append('mat2x3', x);     % Stuff it in the buffer
+z = bc.finish()             % Turn the BsonBuffer into a Bson and display that
+i = z.iterator;             % Get an iterator to buffer's 1st field
+v = i.value                 % Get the value of the field pointed to by the iterator
+                            % and display it for comparison
 
+% Complex array
 y = [.5, 1, 2; 0.6, 1.1, 2.1]
 c = complex(x, y);
 bc = BsonBuffer;
@@ -16,17 +19,18 @@ z = bc.finish()
 i = z.iterator;
 v = i.value
 
-
+% a vertical column
 x = [1;2;3]
 bc = BsonBuffer;
 bc.append('vmat3x1', x);
 z = bc.finish()
 i = z.iterator;
 v = i.value
-v = z.value('vmat3x1.1.0')
-v = z.value('vmat3x1.1')
-v = z.value('3.3')
+v = z.value('vmat3x1.1.0')  % 2nd row 1ist col - should be successful (dotted reference)
+v = z.value('vmat3x1.1')    % 2nd row - also should be successful
+v = z.value('vmat3x1.3.3')  % should fail - no 4th row
 
+% a horizontal row
 x = [1,2,3]
 bc = BsonBuffer;
 bc.append('hmat1x3', x);
@@ -34,6 +38,7 @@ z = bc.finish()
 i = z.iterator;
 v = i.value
 
+% a 3 dimensional matrix - 2x3x2
 B = cat(3, [1 2 3; 4 5 6], [7 8 9; 10 11 12])
 bc = BsonBuffer;
 bc.append('mat2x3x2', B);
@@ -41,74 +46,37 @@ z = bc.finish()
 i = z.iterator;
 q = i.value
 
-
+% a 3D array of floats
 bc = BsonBuffer;
-bc.append('smat2x3x2', single(B));
+bc.append('smat2x3x2', single(B));  % converted to doubles in the buffer
 z = bc.finish()
 i = z.iterator;
-q = i.value
+q = i.value         % pull out doubles
 
+% a 3D array of int32
 bc = BsonBuffer;
-bc.append('lmat2x3x2', int32(B));
+bc.append('imat2x3x2', int32(B));  % stored in the buffer as 32-bit ints
 z = bc.finish()
 i = z.iterator;
 q = i.value
 class(q)
 
+% a logical 4x4 matrix
 lmat4x4 = magic(4) >= 9
 bc = BsonBuffer;
-bc.append('lmat4x4', lmat4x4);
+bc.append('lmat4x4', lmat4x4);  % stored in the buffer as BOOLs
 z = bc.finish()
 i = z.iterator;
-q = i.value
+q = i.value                     % pulled out as logicals
+class(q)
 
-
+% Store a string in a buffer
 ba = BsonBuffer;
 ba.append('test', 'testing');
-y = ba.finish;
+y = ba.finish;                  % y is used for BsonCodeWScope's scope
 y.display();
 
-
-bb = BsonBuffer;
-bb.append('name', 'Gerald');
-bb.append('age', int32(48));
-bb.append('city', 'Cincinnati');
-bb.append('foo', 5);
-bb.append('boo', 'buzz');
-bb.append('bar', int64(2));
-bb.appendBinary('bin', uint8(eye(5)), 1);
-oid = BsonOID
-bb.append('oid', oid);
-bb.append('true', true');
-bb.appendDate('date', now);
-bb.append('null', []);
-bb.append('regex', BsonRegex('pattern', 'options'));
-bb.appendCode('code', '{ this = is + code; }');
-bb.appendSymbol('symbol', 'symbol');
-bb.append('codewscope', BsonCodeWScope('code for scope', y));
-bb.append('timestamp', BsonTimestamp(now, 63));
-
-bb.startObject('sub');
-bb.append('baz', int32(3));
-bb.append('zip', 26);
-bb.finishObject;
-bb.append('more', 'much');
-
-w = bb.finish;
-display(w);
-
-i = w.find('regex');
-display(i.value);
-
-i = w.find('notfound');
-if ~isempty(i)
-    error('MongoTest:Bson.find', 'should have been not found');
-end
-
-w.value('oid')
-ts = w.value('timestamp')
-class(ts.increment)
-
+% store an array of dates
 ds = [now, now + 1];
 bc = BsonBuffer;
 bc.appendDate('dates', ds);
@@ -117,21 +85,66 @@ i = z.iterator;
 v = i.value
 
 
-mongo = Mongo();
+% Create a document with many differen types of fields
+bb = BsonBuffer;
+bb.append('name', 'Gerald');            % string
+bb.append('age', int32(48));            % int32
+bb.append('city', 'Cincinnati');        % string
+bb.append('foo', 5);                    % double
+bb.append('boo', 'buzz');               % string
+bb.append('bar', int64(2));             % int64 (LONG)
+bb.appendBinary('bin', uint8(eye(5)), 1);  % BINDATA
+oid = BsonOID   % Generate an OID
+bb.append('oid', oid);                  % OID
+bb.append('true', true');               % BOOL
+bb.appendDate('date', now);             % DATE
+bb.append('null', []);                  % NULL
+bb.append('regex', BsonRegex('pattern', 'options'));    % REGEX
+bb.appendCode('code', '{ this = is + code; }');         % CODE
+bb.appendSymbol('symbol', 'symbol');    % SYMBOL
+bb.append('codewscope', BsonCodeWScope('code for scope', y));   % CODEWSCOPE
+bb.append('timestamp', BsonTimestamp(now, 63));         % TIMESTAMP
+
+% Start a subobject with the buffer
+bb.startObject('sub');
+bb.append('baz', int32(3));     % append 2 fields to the subobject
+bb.append('zip', 26);
+bb.finishObject;                % and finish the subobject
+
+bb.append('more', 'much');      % append one more string to the buffer
+                                % (not part of the subobject)
+
+w = bb.finish       % Turn the BsonBuffer into a Bson and display
+
+i = w.find('regex');    % Get an iterator for a field by name
+display(i.value);       % display the value of the field
+
+i = w.find('notfound');   % Search for a field that won't be found
+if ~isempty(i)
+    error('MongoTest:Bson.find', 'should have been not found');
+end
+
+w.value('oid')      % get and display the 'oid' field
+ts = w.value('timestamp')   % get and display the 'timestamp' field
+class(ts.increment)         % display the class of its increment
+
+
+mongo = Mongo();       % connect to a MongoDB server on the localhost
 if mongo.isConnected
-    primary = mongo.getPrimary
-    socket = mongo.getSocket
-    hosts = mongo.getHosts
+    primary = mongo.getPrimary  % get the host to which we are connected
+    socket = mongo.getSocket  % Get the TCP/IP socket of the connection
+    hosts = mongo.getHosts  % should be empty since not a replset
 
     db = 'test';
-    % mongo.dropDatabase(db); %
+    % mongo.dropDatabase(db); %  Drop database 'test'
 
-    people = sprintf('%s.people', db);
+    people = sprintf('%s.people', db);  % Construct a namespace string
 
-    mongo.drop(people);
+    mongo.drop(people);     % drop the 'test.people' collection
 
-    mongo.insert(people, w);
+    mongo.insert(people, w);    % insert the collage document
 
+    % add 5 more people to the collection
     bb = BsonBuffer;
     bb.append('name', 'Abe');
     bb.append('age', int32(32));
@@ -167,45 +180,57 @@ if mongo.isConnected
     x = bb.finish;
     mongo.insert(people, x);
 
+    % update Joe's document with a new one
     bb = BsonBuffer;
     bb.append('name', 'Joe');
     bb.append('age', int32(36));
     bb.append('city', 'Natick');
-    x = bb.finish;
-
+    x = bb.finish;          % x = objNew
     bb = BsonBuffer;
     bb.append('name', 'Joe');
-    criteria = bb.finish;
+    criteria = bb.finish;   % criteria = { name : 'Joe' }
     mongo.update(people, criteria, x);
 
+    % remove all people age 19 (Jeff)
     bb = BsonBuffer;
     bb.append('age', int32(19));
     criteria = bb.finish;
     mongo.remove(people, criteria);
 
+    % Create an index on 'test.people' (key=name)
+    % using a string to give the field name of the key
+    % This won't permit duplicate names
     mongo.indexCreate(people, 'name', Mongo.index_unique);
 
+    % Create an index on 'test.people' (key=name)
+    % using a Bson document to describe the key of the index
     bb = BsonBuffer;
     bb.append('city', true);
     key = bb.finish;
     mongo.indexCreate(people, key);
 
+    % find one document matching city='Natick'
     bb = BsonBuffer;
     bb.append('city', 'Natick');
     query = bb.finish;
     result = mongo.findOne(people, query)
 
+    % find all documents in collection 'test.people'
+    % and display them
     cursor = MongoCursor();
     if mongo.find(people, cursor)
         while (cursor.next)
             display(cursor.value);
             fprintf(1, '\n');
         end
+        clear cursor
     end
 
+    % find all documents matching name='Harry'
     bb = BsonBuffer;
     bb.append('name', 'Harry');
     cursor = MongoCursor(bb.finish);
+    % Return only name and city fields
     bb = BsonBuffer;
     bb.append('name', true);
     bb.append('city', true);
@@ -218,86 +243,116 @@ if mongo.isConnected
         clear cursor
     end
 
+    % count the number of documents in 'test.people'
     num = mongo.count(people)
 
+    % count them another way
     bb = BsonBuffer;
     bb.append('count', 'people');
     cmd = bb.finish;
-    mongo.command(db, cmd)
+    b = mongo.command(db, cmd)
+    num = b.value('n')
 
-    mongo.simpleCommand(db, 'count', 'people')
+    % count them using simpleCommand
+    b = mongo.simpleCommand(db, 'count', 'people')
+    num = b.value('n')
 
+    % Reset server error status
     mongo.resetErr(db);
 
+    % Force the server to report an error (debugging purposes)
     mongo.simpleCommand(db, 'forceerror', true)
 
+    % Get the last server error as a Bson document
     mongo.getLastErr(db)
 
+    % Cause an error another way by inserting the smae key
+    % twice where the index was defined as unique
     bb = BsonBuffer;
     bb.append('name', 'dupkey');
     d = bb.finish;
-
     mongo.insert(people, d)
     mongo.insert(people, d)
 
+    % get a Bson document descibing the dupkey error
     mongo.getLastErr(db)
 
+    % get the error code and dewcxriptive string of the server error
     mongo.getServerErr
     mongo.getServerErrString
 
+    % Get the previous error as a Bson document
     mongo.getPrevErr(db)
 
+    % Clear the error status
     mongo.resetErr(db)
 
-    mongo.getLastErr(db)
+    % and verify there's no error
+    err = mongo.getLastErr(db)
+    if ~isempty(err)
+        error('Should not have been an error on the server');
+    end
 
+    % Issue a bad query
     bb = BsonBuffer;
     bb.startObject('name');
     bb.append('$badop', true);
     bb.finishObject;
     query = bb.finish;
     mongo.findOne(people, query)
+    mongo.getServerErrString % display the error string for the bad query
 
-    mongo.getServerErrString
-
+    % add a user to database 'admin'
     mongo.addUser('Gerald', 'P97gwep16');
 
+    % authenticate with correct credentials
     auth = mongo.authenticate('Gerald', 'P97gwep16')
 
+    % try authenicate with bad password
     auth = mongo.authenticate('Gerald', 'BadPass21')
 
+    % try authenticate with bad user
     auth = mongo.authenticate('Unsub', 'BadUser67')
 
+    % report whether we are connected to a master
     master = mongo.isMaster
 
+    % get a list of databases on the server
     mongo.getDatabases
 
+    % get a list of collections within database 'test'
     mongo.getDatabaseCollections(db)
 
-    mongo.rename(people, 'test.rename')
-    mongo.rename('test.rename', people)
-    mongo.rename('noname', 'dontexist')
+    % Test out the rename command
+    mongo.rename(people, 'test.rename')  % test.people -> test.rename
+    mongo.rename('test.rename', people)  % test.rename -> test.people
+    mongo.rename('test.noname', 'test.dontexist')  % fails
 
-    mongo.getLastErr('admin');
+    % get the last error on the 'admin' database
+    mongo.getLastErr('admin')
+
+
+    % Test out GridFS
+    gfs = GridFS(mongo, 'grid')  % Constuct the GridFS object
+
+    gfs.storeFile('MongoTest.m')    % Store a couple files
+    gfs.storeFile('MongoStart.m')   % to the GridFS
+
+    gfs.removeFile('MongoTest.m')   % remove one of them
 
     m = [1 2 3];
+    gfs.store(m, 'M')               % store a small matrix as a gridfile
 
-    gfs = GridFS(mongo, 'grid')
+    gfs.store(lmat4x4, 'lmat4x4');  % store a logical mat
 
-    gfs.storeFile('MongoTest.m')
-    gfs.storeFile('MongoStart.m')
+    % Test GridfileWriter
+    gfw = gfs.writerCreate('gfwTest');  % Set up to write to gridfile 'gfwTest'
+    gfw.write(c)            % Store 2 arrays
+    gfw.write(B)    
+    gfw.finish()            % and finish with the writer
 
-    gfs.removeFile('MongoTest.m')
-
-    gfs.store(m, 'M')
-
-    gfs.store(lmat4x4, 'lmat4x4');
-
-    gfw = gfs.writerCreate('gfwTest');
-
-    gfw.write(c)
-    gfw.finish()
-
+    % find a file in the GridFS and display the housekeeping information
+    % on it.
     gf = gfs.find('MongoStart.m')
     filename = gf.getFilename
     length = gf.getLength
@@ -306,30 +361,36 @@ if mongo.isConnected
     type = gf.getContentType
     datestr(gf.getUploadDate)
     md5 = gf.getMD5
+    desc = gf.getDescriptor
 
+    % display a chunk from 'MongoStart.m'
     gf.getChunk(0)
-    gf.getChunk(1) % empty %
+    gf.getChunk(1) % fails (empty) %
 
+    % Get a range of chunks (illustrative, actually only 1 chunk is
+    % displayed)
     cursor = gf.getChunks(0, 1);
     while (cursor.next)
-        display(cursor.value);
+        disp(cursor.value);
     end
 
-
+    % get a Gridfile describing the small matrix
     gf = gfs.find('M')
-    m = [7 8 9];
-    gf.read(m)
-    m
+    m = [7 8 9];        % Make a buffer to read into
+    gf.read(m)          % read from the gridfile into m
+    m                   % display the read data
 
+    % Get a Grifile describing 'lmat4x4'
     gf = gfs.find('lmat4x4');
-    l2mat4x4 = magic(4) <= 3
-    gf.read(l2mat4x4);
-    l2mat4x4
+    l2mat4x4 = magic(4) <= 3    % Make a buffer
+    gf.read(l2mat4x4);          % Read into the buffer
+    l2mat4x4                    % display it (looks like lmat4x4!)
 
+    % Try a seek within the Gridfile
     gf.seek(4);
-    lmat3x3 = magic(3) >= 4
-    gf.read(lmat3x3);
+    lmat3x3 = magic(3) >= 4     % make a buffer
+    gf.read(lmat3x3);           % read into the buffer
     lmat3x3
-    gf.getPos
-    gf.read(lmat3x3) % fails %
+    gf.getPos                   % report the current position
+    gf.read(lmat3x3) % fails - not enough data left to read
 end
