@@ -85,7 +85,7 @@ i = z.iterator;
 v = i.value
 
 
-% Create a document with many differen types of fields
+% Create a document with many different types of fields
 bb = BsonBuffer;
 bb.append('name', 'Gerald');            % string
 bb.append('age', int32(48));            % int32
@@ -105,7 +105,7 @@ bb.appendSymbol('symbol', 'symbol');    % SYMBOL
 bb.append('codewscope', BsonCodeWScope('code for scope', y));   % CODEWSCOPE
 bb.append('timestamp', BsonTimestamp(now, 63));         % TIMESTAMP
 
-% Start a subobject with the buffer
+% Start a subobject within the buffer
 bb.startObject('sub');
 bb.append('baz', int32(3));     % append 2 fields to the subobject
 bb.append('zip', 26);
@@ -266,7 +266,7 @@ if mongo.isConnected
     % Get the last server error as a Bson document
     mongo.getLastErr(db)
 
-    % Cause an error another way by inserting the smae key
+    % Cause an error another way by inserting the same key
     % twice where the index was defined as unique
     bb = BsonBuffer;
     bb.append('name', 'dupkey');
@@ -277,7 +277,7 @@ if mongo.isConnected
     % get a Bson document descibing the dupkey error
     mongo.getLastErr(db)
 
-    % get the error code and dewcxriptive string of the server error
+    % get the error code and descriptive string of the server error
     mongo.getServerErr
     mongo.getServerErrString
 
