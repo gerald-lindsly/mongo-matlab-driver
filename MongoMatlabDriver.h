@@ -63,7 +63,7 @@ EXPORT int  mongo_bson_buffer_start_object(struct bson_buffer* b, char* name);
 EXPORT int  mongo_bson_buffer_finish_object(struct bson_buffer* b);
 EXPORT int  mongo_bson_buffer_start_array(struct bson_buffer* b, char* name);
 EXPORT int  mongo_bson_buffer_append_bson(struct bson_buffer* b, char* name, struct bson_* bs); 
-EXPORT void mongo_bson_buffer_to_bson(struct bson_buffer** b, struct bson_** out);
+EXPORT void mongo_bson_buffer_to_bson(struct bson_buffer* b, struct bson_** out);
 EXPORT void mongo_bson_empty(struct bson_** b);
 EXPORT int  mongo_bson_size(struct bson_* b);
 EXPORT int  mongo_bson_buffer_size(struct bson_buffer* b);

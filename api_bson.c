@@ -26,8 +26,8 @@ EXPORT void mongo_bson_buffer_create(struct bson_buffer** b)
 }
 
 
-EXPORT void mongo_bson_buffer_to_bson(struct bson_buffer** b, struct bson_** out) {
-    bson* _b = (bson*)*b;
+EXPORT void mongo_bson_buffer_to_bson(struct bson_buffer* b, struct bson_** out) {
+    bson* _b = (bson*)b;
     bson_finish(_b);
     *out = (struct bson_*) _b;
     //*b = 0;
@@ -80,7 +80,7 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
     mwSize ndims;
     const mwSize *odims;
     char* p;
-    int depth = 0;
+    mwSize depth = 0;
     int success;
     if (numel == 1) {
         switch (cls) {
@@ -227,7 +227,7 @@ EXPORT int  mongo_bson_buffer_append_date(struct bson_buffer* b, char *name, mxA
     mwSize ndims;
     const mwSize *odims;
     char* p;
-    int depth = 0;
+    mwSize depth = 0;
     int success;
     if (cls != mxDOUBLE_CLASS) {
         mexPrintf("Only double values are permitted in appendDate\n");
