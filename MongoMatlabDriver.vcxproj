@@ -241,6 +241,7 @@
     <ClInclude Include="MongoMatlabDriver.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".gitignore" />
     <None Include="Bson.m" />
     <None Include="BsonBuffer.m" />
     <None Include="BsonCodeWScope.m" />
