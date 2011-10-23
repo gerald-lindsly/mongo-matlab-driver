@@ -1,4 +1,4 @@
-This is a Matlb extension supporting access to MongoDB.
+This is a Matlab extension supporting access to MongoDB.
 
 After cloning the repo, unpack mongo-c-driver-src/mongo-c-driver-src.zip into that directory.
 Use the files in this zip file rather than [mongo-c-driver](http://github.com/mongodb/mongo-c-driver),
