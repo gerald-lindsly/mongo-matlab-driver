@@ -4,9 +4,10 @@ After cloning the repo, unpack mongo-c-driver-src/mongo-c-driver-src.zip into th
 Use the files in this zip file rather than [mongo-c-driver](http://github.com/mongodb/mongo-c-driver),
  since a few minor tweaks were required to get it to work with Matlab.
 
-Load the solution into Visual Studio and build the dll.
-(Currently, only the 64-bit Windows version has been tested;
-other platforms will need some options to be set such as where to locate libraries included with Matlab).
+Load the solution into Visual Studio and build the dll.  The project properties may need to be edited
+to include the locations where the Matlab include files and libs are.
+(Currently, only the 32 & 64-bit Windows versions have been tested;
+linux to follow soon).
 
 Add the path of the driver to Matlab:
 `> addpath /10gen/mongo-matlab-driver`
