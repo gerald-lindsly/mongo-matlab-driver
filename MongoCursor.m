@@ -28,7 +28,7 @@ classdef MongoCursor < handle
     end
 
     properties (Constant)
-        % Options: %
+        % Options:
         tailable   = uint32(2);   % Create a tailable cursor. %
         slave_ok   = uint32(4);   %*< Allow queries on a non-primary node. %
         no_timeout = uint32(16);  %*< Disable cursor timeouts. %
