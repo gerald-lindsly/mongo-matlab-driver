@@ -1,4 +1,6 @@
 x64/
+Debug/
+Release/
 ipch/
 mongo-c-driver-src/bson.c
 mongo-c-driver-src/bson.h
