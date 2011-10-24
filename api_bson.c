@@ -79,10 +79,10 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
     mwSize sizes[MAXDIM];
     mwSize ndims;
     const mwSize *odims;
-    char* p;
     mwSize depth = 0;
     int success;
     if (numel == 1) {
+        /* Append a single element using the given name */
         switch (cls) {
         case mxLOGICAL_CLASS:
             return (bson_append_bool(_b, name, ((char*)mxGetData(value))[0]) == BSON_OK);
@@ -120,6 +120,7 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
     if (ndims > 1)
         reverse(dims, ndims);
     i = ndims;
+    /* calculate offset to multiply each dimension's index by */
     j = 1;
     do {
         i--;
@@ -127,7 +128,7 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
         j *= dims[i];
     } while (i > 0);
     if (ndims == 2 && dims[1] == 1)
-        ndims--;
+        ndims--;  /* 1 dimensional row vector */
     if (ndims > 1) {
         /* reverse row and columns */
         j = dims[ndims-1];
@@ -138,7 +139,6 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
         sizes[ndims-2] = j;
     }
     memset(ijk, 0, ndims * sizeof(mwSize));
-    p = (char*)mxGetData(value);
     while (success && depth >= 0) {
         if (ijk[depth] < dims[depth]) {
             const char* num = numstr((int)(ijk[depth]++));
@@ -225,7 +225,7 @@ EXPORT int  mongo_bson_buffer_append_date(struct bson_buffer* b, char *name, mxA
     mwSize ijk[MAXDIM];
     mwSize sizes[MAXDIM];
     mwSize ndims;
-    const mwSize *odims;
+    const mwSize *odims; /* original dimensions */
     char* p;
     mwSize depth = 0;
     int success;
@@ -243,6 +243,7 @@ EXPORT int  mongo_bson_buffer_append_date(struct bson_buffer* b, char *name, mxA
         reverse(dims, ndims);
     i = ndims;
     j = 1;
+    /* calculate offset to multiply each dimension's index by */
     do {
         i--;
         sizes[i] = j;
@@ -565,6 +566,8 @@ EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i) {
     mwSize depth, j, len, ofs;
     int isRow = 0;
     sub[0] = *(bson_iterator*)i;
+    /* count number of dimensions.  This is equal to the number of
+       consecutive array markers in the BSON */
     do {
         bson_iterator_subiterator(&sub[ndims], &sub[ndims+1]);
         if (++ndims > MAXDIM) {
@@ -575,6 +578,7 @@ EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i) {
     }
     while (sub_type == BSON_ARRAY);
 
+    /* get the first data value's type */
     switch (common_type = sub_type) {
     case BSON_INT: ;
     case BSON_LONG: ;
@@ -661,6 +665,7 @@ GotEl:  {
         dim[ndims] = dim[ndims-1];
         dim[ndims-1] = j;
     }
+    /* calculate offset each dimension multiplies it's index by */
     len = 1;
     for (depth = ndims; depth > 0; depth--) {
         sizes[depth] = len;
