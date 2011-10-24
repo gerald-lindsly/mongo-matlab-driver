@@ -14,6 +14,11 @@
 
 #include "mongo-c-driver-src/platform.h"
 
+/* Define dummy structures for the interface with Matlab.
+   Provides a level of abstraction and hides the details
+   of the types from Matlab.  Also, we don't need to include here
+   the C driver files that define the types these are mapped to.
+*/
 struct bson_buffer {
     int dummy;
 };
