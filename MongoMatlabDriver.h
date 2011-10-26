@@ -12,7 +12,7 @@
 
 #include <matrix.h>
 
-#include "mongo-c-driver-src/platform.h"
+#include "platform.h"
 
 /* Define dummy structures for the interface with Matlab.
    Provides a level of abstraction and hides the details

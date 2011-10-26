@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "mongo-c-driver-src/bson.h"
+#include "bson.h"
 #include <mex.h>
 
 extern int sock_init();
