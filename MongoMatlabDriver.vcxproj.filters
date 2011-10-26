@@ -10,36 +10,15 @@
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="mongo-c-driver-src">
-      <UniqueIdentifier>{403771e3-da00-4813-878f-57b2d244a62e}</UniqueIdentifier>
+      <UniqueIdentifier>{c19c89fb-e600-4d7a-be0e-ec81a84dd3cc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mongo-c-driver-src\bson.c">
-      <Filter>mongo-c-driver-src</Filter>
-    </ClCompile>
     <ClCompile Include="DllMain.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="api_bson.c">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mongo-c-driver-src\numbers.c">
-      <Filter>mongo-c-driver-src</Filter>
-    </ClCompile>
-    <ClCompile Include="mongo-c-driver-src\encoding.c">
-      <Filter>mongo-c-driver-src</Filter>
-    </ClCompile>
-    <ClCompile Include="mongo-c-driver-src\gridfs.c">
-      <Filter>mongo-c-driver-src</Filter>
-    </ClCompile>
-    <ClCompile Include="mongo-c-driver-src\md5.c">
-      <Filter>mongo-c-driver-src</Filter>
-    </ClCompile>
-    <ClCompile Include="mongo-c-driver-src\mongo.c">
-      <Filter>mongo-c-driver-src</Filter>
-    </ClCompile>
-    <ClCompile Include="mongo-c-driver-src\net.c">
-      <Filter>mongo-c-driver-src</Filter>
     </ClCompile>
     <ClCompile Include="api_mongo.c">
       <Filter>Source Files</Filter>
@@ -47,30 +26,51 @@
     <ClCompile Include="api_gridfs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bson.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="encoding.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="gridfs.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="mongo.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="net.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
+    <ClCompile Include="numbers.c">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mongo-c-driver-src\bson.h">
-      <Filter>mongo-c-driver-src</Filter>
-    </ClInclude>
     <ClInclude Include="MongoMatlabDriver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mongo-c-driver-src\encoding.h">
+    <ClInclude Include="bson.h">
       <Filter>mongo-c-driver-src</Filter>
     </ClInclude>
-    <ClInclude Include="mongo-c-driver-src\gridfs.h">
+    <ClInclude Include="encoding.h">
       <Filter>mongo-c-driver-src</Filter>
     </ClInclude>
-    <ClInclude Include="mongo-c-driver-src\md5.h">
+    <ClInclude Include="gridfs.h">
       <Filter>mongo-c-driver-src</Filter>
     </ClInclude>
-    <ClInclude Include="mongo-c-driver-src\mongo.h">
+    <ClInclude Include="md5.h">
       <Filter>mongo-c-driver-src</Filter>
     </ClInclude>
-    <ClInclude Include="mongo-c-driver-src\net.h">
+    <ClInclude Include="mongo.h">
       <Filter>mongo-c-driver-src</Filter>
     </ClInclude>
-    <ClInclude Include="mongo-c-driver-src\platform.h">
+    <ClInclude Include="net.h">
+      <Filter>mongo-c-driver-src</Filter>
+    </ClInclude>
+    <ClInclude Include="platform.h">
       <Filter>mongo-c-driver-src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -86,9 +86,6 @@
     </None>
     <None Include="Bson.m">
       <Filter>Source Files</Filter>
-    </None>
-    <None Include="mongo-c-driver-src\README.md">
-      <Filter>mongo-c-driver-src</Filter>
     </None>
     <None Include="BsonIterator.m">
       <Filter>Source Files</Filter>
