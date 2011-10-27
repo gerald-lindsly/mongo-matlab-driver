@@ -79,7 +79,7 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
     mwSize sizes[MAXDIM];
     mwSize ndims;
     const mwSize *odims;
-    mwSize depth = 0;
+    int depth = 0;
     int success;
     if (numel == 1) {
         /* Append a single element using the given name */
@@ -142,7 +142,7 @@ EXPORT int  mongo_bson_buffer_append(struct bson_buffer* b, char* name, mxArray*
     while (success && depth >= 0) {
         if (ijk[depth] < dims[depth]) {
             const char* num = numstr((int)(ijk[depth]++));
-            if (depth < ndims - 1) {
+            if (depth < (int)(ndims - 1)) {
                 depth++;
                 success = (bson_append_start_array(_b, num) == BSON_OK);
             }
@@ -227,7 +227,7 @@ EXPORT int  mongo_bson_buffer_append_date(struct bson_buffer* b, char *name, mxA
     mwSize ndims;
     const mwSize *odims; /* original dimensions */
     char* p;
-    mwSize depth = 0;
+    int depth = 0;
     int success;
     if (cls != mxDOUBLE_CLASS) {
         mexPrintf("Only double values are permitted in appendDate\n");
@@ -265,7 +265,7 @@ EXPORT int  mongo_bson_buffer_append_date(struct bson_buffer* b, char *name, mxA
     while (success && depth >= 0) {
         if (ijk[depth] < dims[depth]) {
             const char* num = numstr((int)(ijk[depth]++));
-            if (depth < ndims - 1) {
+            if (depth < (int)(ndims - 1)) {
                 depth++;
                 success = (bson_append_start_array(_b, num) == BSON_OK);
             }
