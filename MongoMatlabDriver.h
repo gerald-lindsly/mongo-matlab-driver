@@ -1,6 +1,15 @@
 #ifdef _MSC_VER
+#define mxint64 int64_t
 #ifndef MONGO_USE__INT64
 #define MONGO_USE__INT64
+#endif
+#endif
+
+
+#ifdef __GNUC__
+typedef long long mxint64;
+#ifndef MONGO_HAVE_STDINT
+#define MONGO_HAVE_STDINT
 #endif
 #endif
 
@@ -81,7 +90,7 @@ EXPORT int  mongo_bson_iterator_next(struct bson_iterator_* i);
 EXPORT const char* mongo_bson_iterator_key(struct bson_iterator_* i);
 EXPORT void mongo_bson_subiterator(struct bson_iterator_* i, struct bson_iterator_** si);
 EXPORT int  mongo_bson_iterator_int(struct bson_iterator_* i);
-EXPORT int64_t mongo_bson_iterator_long(struct bson_iterator_* i);
+EXPORT mxint64 mongo_bson_iterator_long(struct bson_iterator_* i);
 EXPORT double mongo_bson_iterator_double(struct bson_iterator_* i);
 EXPORT const char* mongo_bson_iterator_string(struct bson_iterator_* i);
 EXPORT int  mongo_bson_iterator_bin_type(struct bson_iterator_* i);
@@ -89,7 +98,7 @@ EXPORT int  mongo_bson_iterator_bin_len(struct bson_iterator_* i);
 EXPORT void mongo_bson_iterator_bin_value(struct bson_iterator_* i, void* v);
 EXPORT void mongo_bson_iterator_oid(struct bson_iterator_* i, void* oid);
 EXPORT int  mongo_bson_iterator_bool(struct bson_iterator_* i);
-EXPORT int64_t  mongo_bson_iterator_date(struct bson_iterator_* i);
+EXPORT mxint64  mongo_bson_iterator_date(struct bson_iterator_* i);
 EXPORT const char* mongo_bson_iterator_regex(struct bson_iterator_* i);
 EXPORT const char* mongo_bson_iterator_regex_opts(struct bson_iterator_* i);
 EXPORT const char* mongo_bson_iterator_code(struct bson_iterator_* i);

@@ -436,7 +436,7 @@ EXPORT int mongo_bson_iterator_int(struct bson_iterator_* i) {
 }
 
 
-EXPORT int64_t mongo_bson_iterator_long(struct bson_iterator_* i) {
+EXPORT mxint64 mongo_bson_iterator_long(struct bson_iterator_* i) {
     return bson_iterator_long((bson_iterator*)i);
 }
 
@@ -494,7 +494,7 @@ EXPORT int mongo_bson_iterator_bool(struct bson_iterator_* i) {
 }
 
 
-EXPORT int64_t  mongo_bson_iterator_date(struct bson_iterator_* i) {
+EXPORT mxint64  mongo_bson_iterator_date(struct bson_iterator_* i) {
     return bson_iterator_date((bson_iterator*) i);
 }
 
