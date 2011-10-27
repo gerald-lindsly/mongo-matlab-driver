@@ -18,8 +18,6 @@
 #include "mongo.h"
 #include "md5.h"
 
-#include <mex.h>
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
