@@ -25,10 +25,10 @@ int sock_init() {
 
 #if defined(_WIN32)
     wVers = MAKEWORD(1, 1);
-    return retval = (WSAStartup(wVers, &wsaData) == 0);
+    retval = (WSAStartup(wVers, &wsaData) == 0);
 #elif defined(MACINTOSH)
     GUSISetup(GUSIwithInternetSockets);
-    return retval = 1;
+    retval = 1;
 #elif defined(SIGPIPE)
     retval = 1;
     if (sigaction(SIGPIPE, (struct sigaction *)NULL, &act) < 0)
@@ -38,8 +38,8 @@ int sock_init() {
         if (sigaction(SIGPIPE, &act, (struct sigaction *)NULL) < 0)
             retval = 0;
     }
-    return retval;
 #endif
+    return retval;
 }
 
 
