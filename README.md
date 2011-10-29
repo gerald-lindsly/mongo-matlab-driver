@@ -38,6 +38,7 @@ Unload the library with:
 
 (you may have to clear variables in order to do this)
 
+
 BASIC USAGE:
 
 Connecting to a MongoDB server running on localhost is as straight forward and simple as:
