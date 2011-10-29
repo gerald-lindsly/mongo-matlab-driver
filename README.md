@@ -41,7 +41,9 @@ Unload the library with:
 BASIC USAGE:
 
 Connecting to a MongoDB server running on localhost is as straight forward and simple as:
-mongo = Mongo();
+
+`mongo = Mongo();`
+
 This creates an instance of the Mongo class which you'll use for subsequent communication with MongoDB.
 Once you have established the connection, you may execute CRUD operations on the database quite easily. Simplified prototypes for these look like this:
 
