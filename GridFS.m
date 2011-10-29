@@ -27,14 +27,14 @@ classdef GridFS < handle
                 error('GridFS:GridFS', 'Too many arguments');
             end
             if nargin == 3
-                prefix = varargin{1}
+                prefix = varargin{1};
             else
                 prefix = 'fs';
             end
             gfs.mongo = m;
             gfs.h = libpointer('gridfs_Ptr');
             if ~calllib('MongoMatlabDriver', 'mongo_gridfs_create', m.h, db, prefix, gfs.h)
-                gfs = [];
+                error('GridFS:GridFS', 'Unable to create GridFS');
             end
         end
 
