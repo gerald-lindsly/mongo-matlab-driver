@@ -56,14 +56,15 @@ Once you have established the connection, you may execute CRUD operations on the
 namespace is the name of the collection on which to perform the operation.
 
 A simple example of an actual insert looks like this:
-`bb = BsonBuffer;
 
-bb.append('name', 'John');
+`bb = BsonBuffer;`
 
-bb.append('age', int32(34));
+`bb.append('name', 'John');`
 
-bb.append('address', '1033 Vine Street');
+`bb.append('age', int32(34));`
 
-record = bb.finish();
+`bb.append('address', '1033 Vine Street');`
 
-mongo.insert('test.people', record);`
+`record = bb.finish();`
+
+`mongo.insert('test.people', record);`
