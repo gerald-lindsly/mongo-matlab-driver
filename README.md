@@ -37,3 +37,25 @@ Unload the library with:
 `> MongoStop`
 
 (you may have to clear variables in order to do this)
+
+BASIC USAGE:
+
+Connecting to a MongoDB server running on localhost is as straight forward and simple as:
+mongo = Mongo();
+This creates an instance of the Mongo class which you’ll use for subsequent communication with MongoDB.
+Once you have established the connection, you may execute CRUD operations on the database quite easily. Simplified prototypes for these look like this:
+
+`mongo.insert(namespace, record);`
+`result = mongo.findOne(namespace, query);`
+`mongo.update(namespace, criteria, objNew);`
+`mongo.remove(namespace, criteria);`
+
+namespace is the name of the collection on which to perform the operation.
+
+A simple example of an actual insert looks like this:
+`bb = BsonBuffer;
+bb.append('name', 'John');
+bb.append('age', int32(34));
+bb.append('address', '1033 Vine Street');
+record = bb.finish();
+mongo.insert('test.people', record);`
