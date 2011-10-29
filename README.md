@@ -9,7 +9,7 @@ Windows:
 Load the solution into Visual Studio and build the dll.  The project properties may need to be edited
 to include the locations where the Matlab include files and libs are.
 
-Linux (only 32-bit tested at the moment):
+Linux:
 
 `~/10gen/mongo-matlab-driver$ make`
 
