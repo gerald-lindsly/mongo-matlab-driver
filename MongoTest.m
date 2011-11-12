@@ -6,7 +6,7 @@ x = [1,2,3; 4,5,6]          % Construct a 2x3 matrix (doubles) and display
 bc = BsonBuffer;            % Construct a buffer to store it in
 bc.append('mat2x3', x);     % Stuff it in the buffer
 z = bc.finish()             % Turn the BsonBuffer into a Bson and display that
-i = z.iterator;             % Get an iterator to buffer's 1st field
+i = z.iterator;             % Get an iterator to the Bson's 1st field
 v = i.value                 % Get the value of the field pointed to by the iterator
                             % and display it for comparison
 
@@ -202,7 +202,7 @@ if mongo.isConnected
     % This won't permit duplicate names
     mongo.indexCreate(people, 'name', Mongo.index_unique);
 
-    % Create an index on 'test.people' (key=name)
+    % Create an index on 'test.people' (key=city)
     % using a Bson document to describe the key of the index
     bb = BsonBuffer;
     bb.append('city', true);

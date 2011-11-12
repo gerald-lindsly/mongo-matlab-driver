@@ -57,7 +57,7 @@ classdef Mongo < handle
         end
 
         function addSeed(m, host)
-            % m.addSeed(host)  Add a host seed to the replset
+            % mongo.addSeed(host)  Add a host seed to the replset
             calllib('MongoMatlabDriver', 'mongo_add_seed', m.h, host);
         end
         
@@ -75,7 +75,7 @@ classdef Mongo < handle
         end
 
         function ok = reconnect(m)
-            % ok = m.reconnect()  Reconnect to the MongoDB server.
+            % ok = mongo.reconnect()  Reconnect to the MongoDB server.
             % Call this to resume operations after disconnect() has been called.
             ok = (calllib('MongoMatlabDriver', 'mmongo_reconnect', m.h) ~= 0);
         end
@@ -345,7 +345,7 @@ classdef Mongo < handle
             % like mongo.count() does.
             result = Bson;
             if ~calllib('MongoMatlabDriver', 'mongo_command', m.h, db, cmd.h, result.h)
-                % result = [];
+                result = [];
             end
         end
 

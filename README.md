@@ -23,6 +23,7 @@ Add the path of the driver to Matlab:
 
 Then the test suite can be run with:
 `> MongoTest`
+(after changing the current directory to that of this driver)
 
 For normal operation, load the library with:
 `> MongoStart`
