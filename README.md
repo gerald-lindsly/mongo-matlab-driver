@@ -6,8 +6,12 @@ Use the files in this zip file rather than [mongo-c-driver](http://github.com/mo
 
 Windows:
 
-Load the solution into Visual Studio and build the dll.  The project properties may need to be edited
+Binaries for 64 and 32-bit are provided.  Rename MongoMatlabDriver32.dll or MongoMatlabDriver64.dll to 
+MongoMatlabDriver as appropriate.
+
+Building: Load the solution into Visual Studio and build the dll.  The project properties may need to be edited
 to include the locations where the Matlab include files and libs are.
+
 
 Linux:
 
