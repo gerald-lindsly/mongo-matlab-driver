@@ -160,7 +160,7 @@ classdef Mongo < handle
         end
 
         function ok = insert(m, ns, b)
-            % ok = mongo.insert(ns, b)  Insert a BSON document in the database.
+            % ok = mongo.insert(ns, b)  Insert a BSON document into the database.
             % The collection namespace (ns) is in the form 'database.collection'.
             % See http://www.mongodb.org/display/DOCS/Inserting
             % Returns logical 1 if successful; otherwise, 0.
@@ -170,7 +170,7 @@ classdef Mongo < handle
 
         function ok = update(m, ns, criteria, objNew, varargin)
             % ok = mongo.update(ns, criteria, objNew, optional flags)
-            % Perform an update to the server.
+            % Perform an update on the server.
             % The collection namespace (ns) is in the form 'database.collection'.
             % criteria and ObjNew are Bson objects.
             % See http://www.mongodb.org/display/DOCS/Updating
@@ -304,6 +304,7 @@ classdef Mongo < handle
             % ok = mongo.addUser(user, password, optional db='admin')  Add a user.
             % user and password are strings.
             % Optional db (string) defaults to 'admin'
+            % See http://www.mongodb.org/display/DOCS/Security+and+Authentication
             db = 'admin';
             if nargin > 4
                 error('Mongo:addUser', 'Unexpected number of arguments');
@@ -319,6 +320,7 @@ classdef Mongo < handle
             % Authenticate a user and password
             % Optional db (string) gives to the database to authenticate against.
             % Returns logical 1 if successfully authenticated; otherwise, 0.
+            % See http://www.mongodb.org/display/DOCS/Security+and+Authentication
             db = 'admin';
             if nargin > 4
                 error('Mongo:authenticate', 'Unexpected number of arguments');
