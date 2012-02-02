@@ -197,6 +197,19 @@ classdef Mongo < handle
             ok = (calllib('MongoMatlabDriver', 'mmongo_update', m.h, ns, criteria.h, objNew.h, flags) ~= 0);
         end
 
+        function ok = put(m, name, value)
+            % ok = putMat(m, name, value)  Save a value to a name
+            % in collection 'Matlab.vars'  (does an upsert).
+            buf = BsonBuffer();
+            buf.append('name', name);
+            criteria = buf.finish()
+            buf = BsonBuffer();
+            buf.append('name', name);
+            buf.append('value', value);
+            objNew = buf.finish();
+            ok = m.update('Matlab.vars', criteria, objNew, Mongo.update_upsert);
+        end
+
         function ok = remove(m, ns, criteria)
             % ok = mongo.remove(ns, criteria)  Remove documents from the server.
             % The collection namespace (ns) is in the form 'database.collection'.
@@ -228,6 +241,18 @@ classdef Mongo < handle
             b = Bson;
             if ~calllib('MongoMatlabDriver', 'mmongo_find_one', m.h, ns, query.h, fields.h, b.h)
                 b = [];
+            end
+        end
+
+        function value = get(m, name)
+            buf = BsonBuffer();
+            buf.append('name', name);
+            query = buf.finish();
+            b = m.findOne('Matlab.vars', query);
+            if isempty(b)
+                value = [];
+            else
+                value = b.value('value');
             end
         end
 
