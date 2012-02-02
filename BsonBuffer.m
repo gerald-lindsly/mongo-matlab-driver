@@ -51,6 +51,9 @@ classdef BsonBuffer < handle
             % complex double    subobject { "r" : real, "i" : imag }
             % There are some other 'append' functions to handle the BsonTypes not detected
             % by this generic function.
+            if isempty(bb.h)
+                error('BsonBuffer:append', 'Buffer has been finished.');
+            end
             if isempty(value)
                 ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_null', bb.h, name) ~= 0);
             elseif isa(value, 'Bson')
@@ -84,6 +87,9 @@ classdef BsonBuffer < handle
             % Returns true(1) if the data was successfully appended; otherwise, false(0).
             % only int8 or uint8 value types are supported.
             % Optionally, specify the subtype of the binary data.
+            if isempty(bb.h)
+                error('BsonBuffer:appendBinary', 'Buffer has been finished.');
+            end
             if isa(value, 'int8') | isa(value, 'uint8')
                 t = 0;
                 if nargin > 3
@@ -99,44 +105,64 @@ classdef BsonBuffer < handle
             % ok = bb.appendDate(name, value)  Append date(s) to this buffer.
             % Returns true(1) if the data was successfully appended; otherwise, false(0).
             % Multidimension arrays of datenums are supported.
+            if isempty(bb.h)
+                error('BsonBuffer:appendDate', 'Buffer has been finished.');
+            end
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_date', bb.h, name, value) ~= 0);
         end
 
         function ok = appendCode(bb, name, value)
             % ok = bb.appendCode(name, value)  Append a BsonType.CODE field to this buffer.
             % Returns true(1) if the data was successfully appended; otherwise, false(0).
+            if isempty(bb.h)
+                error('BsonBuffer:appendCode', 'Buffer has been finished.');
+            end
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_code', bb.h, name, value) ~= 0);
         end
 
         function ok = appendSymbol(bb, name, value)
             % ok = bb.appendSymbol(name, value)  Append a BsonType.SYMBOL field to this buffer.
             % Returns true(1) if the data was successfully appended; otherwise, false(0).
+            if isempty(bb.h)
+                error('BsonBuffer:appendSymbol', 'Buffer has been finished.');
+            end
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_append_symbol', bb.h, name, value) ~= 0);
         end
 
         function ok = startObject(bb, name)
             % ok = bb.startObject(name)  Start a nested subobject within this buffer.
             % Returns true(1) if the marker was successfully appended; otherwise, false(0).
+            if isempty(bb.h)
+                error('BsonBuffer:startObject', 'Buffer has been finished.');
+            end
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_start_object', bb.h, name) ~= 0);
         end
 
         function ok = finishObject(bb)
             % ok = bb.finishObject(name)  Finish a nested subobject.
             % Returns true(1) if the marker was successfully appended; otherwise, false(0).
+            if isempty(bb.h)
+                error('BsonBuffer:finsihObject', 'Buffer has been finished.');
+            end
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_finish_object', bb.h) ~= 0);
         end
 
         function ok = startArray(bb, name)
             % ok = bb.startArray(name)  Start an array within this buffer.
             % Returns true(1) if the marker was successfully appended; otherwise, false(0).
+            if isempty(bb.h)
+                error('BsonBuffer:startArray', 'Buffer has been finished.');
+            end
             ok = (calllib('MongoMatlabDriver', 'mongo_bson_buffer_start_array', bb.h, name) ~= 0);
         end
 
         function b = finish(bb)
             % b = bb.finish()  Finish with this buffer and turn it into a Bson object.
+            if isempty(bb.h)
+                error('BsonBuffer:finsih', 'Buffer has already been finished.');
+            end
             b = Bson;
             calllib('MongoMatlabDriver', 'mongo_bson_buffer_to_bson', bb.h, b.h);
-            clear bb.h;
             bb.h = [];
         end
 
