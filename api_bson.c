@@ -34,7 +34,7 @@ const char* numstr(int i) {
 
 EXPORT void mongo_bson_buffer_create(struct bson_buffer** b)
 {
-    bson* _b = (bson*)malloc(sizeof(bson));
+    bson* _b = (bson*)bson_malloc(sizeof(bson));
     bson_init(_b);
     *b = (struct bson_buffer*)_b;
 }
