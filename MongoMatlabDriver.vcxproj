@@ -250,9 +250,11 @@
     <None Include="BsonRegex.m" />
     <None Include="BsonTimestamp.m" />
     <None Include="BsonType.m" />
+    <None Include="COPYRIGHT.txt" />
     <None Include="Gridfile.m" />
     <None Include="GridfileWriter.m" />
     <None Include="GridFS.m" />
+    <None Include="LICENSE.txt" />
     <None Include="Mongo.m" />
     <None Include="MongoCursor.m" />
     <None Include="MongoStart.m" />

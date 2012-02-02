@@ -129,5 +129,7 @@
     <None Include=".gitignore">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="COPYRIGHT.txt" />
+    <None Include="LICENSE.txt" />
   </ItemGroup>
 </Project>
