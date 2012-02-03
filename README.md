@@ -7,7 +7,7 @@ Use the files in this zip file rather than [mongo-c-driver](http://github.com/mo
 Windows:
 
 Binaries for 64 and 32-bit are provided.  Rename MongoMatlabDriver32.dll or MongoMatlabDriver64.dll to 
-MongoMatlabDriver as appropriate.
+MongoMatlabDriver.dll as appropriate.
 
 Building: Load the solution into Visual Studio and build the dll.  The project properties may need to be edited
 to include the locations where the Matlab include files and libs are.
@@ -51,7 +51,8 @@ Connecting to a MongoDB server running on localhost is as straight forward and s
 `mongo = Mongo();`
 
 This creates an instance of the Mongo class which you'll use for subsequent communication with MongoDB.
-Once you have established the connection, you may execute CRUD operations on the database quite easily. Simplified prototypes for these look like this:
+Once you have established the connection, you may execute CRUD operations on the database quite easily.
+Simplified prototypes for these look like this:
 
 `mongo.insert(namespace, record);`
 
@@ -76,3 +77,14 @@ A simple example of an actual insert looks like this:
 `record = bb.finish();`
 
 `mongo.insert('test.people', record);`
+
+
+There are 3 convenience functions for storing named values to the collection 'Matlab.vars'.
+These are:
+mongo.put('name', value)  to store a value with a given name.
+value = mongo.get('name') to fetch the value associated with a name.
+mongo.list();  to list the names of the values stored.
+
+If you find these functions handy and useful, you may want to index 'Matlab.vars' by name:
+mongo.indexCreate('Matlab.vars', 'name')
+
