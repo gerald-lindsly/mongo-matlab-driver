@@ -1,17 +1,3 @@
-%    Copyright 2009-2011 10gen Inc.
-%
-%    Licensed under the Apache License, Version 2.0 (the "License");
-%    you may not use this file except in compliance with the License.
-%    You may obtain a copy of the License at
-%
-%    http://www.apache.org/licenses/LICENSE-2.0
-%
-%    Unless required by applicable law or agreed to in writing, software
-%    distributed under the License is distributed on an "AS IS" BASIS,
-%    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-%    See the License for the specific language governing permissions and
-%    limitations under the License.
-
 classdef Mongo < handle
     % Mongo - Objects of this class are used to connect to a MongoDB server
     %  and to perform database operations on that server.
@@ -202,7 +188,7 @@ classdef Mongo < handle
             % in collection 'Matlab.vars'  (does an upsert).
             buf = BsonBuffer();
             buf.append('name', name);
-            criteria = buf.finish()
+            criteria = buf.finish();
             buf = BsonBuffer();
             buf.append('name', name);
             buf.append('value', value);
@@ -245,6 +231,11 @@ classdef Mongo < handle
         end
 
         function value = get(m, name)
+            % value = mongo.get(name)  Retrieve a value stored with put().
+            % The collection 'Matlab.vars' is searched for a document with
+            % the 'name' field equal to the requested name.  If found, the
+            % document's 'value' field is returned; otherwise, the empty
+            % matrix.
             buf = BsonBuffer();
             buf.append('name', name);
             query = buf.finish();
@@ -253,6 +244,19 @@ classdef Mongo < handle
                 value = [];
             else
                 value = b.value('value');
+            end
+        end
+
+        function list(m)
+            % list(m)  list the names of the values stored in 'Matlab.vars'.
+            cursor = MongoCursor();
+            buf = BsonBuffer();
+            buf.append('name', true);
+            cursor.sort = buf.finish();
+            if m.find('Matlab.vars', cursor)
+                while cursor.next()
+                    disp(cursor.value.value('name'));
+                end
             end
         end
 
@@ -470,3 +474,17 @@ classdef Mongo < handle
         end
     end
 end
+
+%    Copyright 2009-2011 10gen Inc.
+%
+%    Licensed under the Apache License, Version 2.0 (the "License");
+%    you may not use this file except in compliance with the License.
+%    You may obtain a copy of the License at
+%
+%    http://www.apache.org/licenses/LICENSE-2.0
+%
+%    Unless required by applicable law or agreed to in writing, software
+%    distributed under the License is distributed on an "AS IS" BASIS,
+%    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%    See the License for the specific language governing permissions and
+%    limitations under the License.
