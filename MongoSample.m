@@ -16,6 +16,7 @@
 %
 % A sample Matlab script
 
+MongoStart;
 m = Mongo();
 if ~m.isConnected()
    error('MongoSample:MongoSample', 'No connection');
@@ -97,6 +98,6 @@ if m.find(ns, cursor)
  end
 
 % Since this is an example, we'll clean up after ourselves.
-% m.drop(ns);
+m.drop(ns);
 
   
