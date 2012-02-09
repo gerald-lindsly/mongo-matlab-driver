@@ -257,6 +257,7 @@
     <None Include="LICENSE.txt" />
     <None Include="Mongo.m" />
     <None Include="MongoCursor.m" />
+    <None Include="MongoSample.m" />
     <None Include="MongoStart.m" />
     <None Include="MongoStop.m" />
     <None Include="MongoTest.m" />
