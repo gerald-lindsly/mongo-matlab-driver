@@ -15,6 +15,12 @@
 % MongoSample.m
 %
 % A sample Matlab script
+%
+% First, we add 3 documents to the collection 'mongoquest.Spells'
+% Each of these documents represents a spell with a name and a level.
+% 2nd, we do a normal query/find loop to display the names of the level 1 spells.
+% 3rd, we update each document to include a flavor field.
+% and lastly, we run another query loop to display both names and flavors of the level 1 spells.
 
 MongoStart;
 m = Mongo();

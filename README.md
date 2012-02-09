@@ -88,3 +88,9 @@ mongo.list();  to list the names of the values stored.
 If you find these functions handy and useful, you may want to index 'Matlab.vars' by name:
 mongo.indexCreate('Matlab.vars', 'name')
 
+There is a sample Matlab script which you can run with:
+
+`MongoSample`
+
+This simple example demonstrates the most common operations of inserting, updating and 
+also the 'usual' query / find loop.
