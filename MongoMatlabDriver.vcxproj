@@ -107,7 +107,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)mongo-c-driver-src;C:\Program Files (x86)\MATLAB\R2011b\extern\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\MATLAB\R2011b\extern\lib\win64\microsoft;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Program Files\MATLAB\R2011b\extern\lib\win64\microsoft;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'">
     <LinkIncremental>false</LinkIncremental>
