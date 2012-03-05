@@ -19,12 +19,14 @@
 #include "bson.h"
 #include <mex.h>
 
-extern int sock_init();
+extern int mongo_sock_init();
 
+bson empty_bson;
 
 int main(void)
 {
-    sock_init();
+    mongo_sock_init();
+    bson_empty(&empty_bson);
     bson_printf = mexPrintf;
     bson_errprintf = mexPrintf;
     set_bson_err_handler(mexErrMsgTxt);

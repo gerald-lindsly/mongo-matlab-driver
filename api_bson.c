@@ -597,9 +597,14 @@ EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i) {
     case BSON_INT: ;
     case BSON_LONG: ;
     case BSON_DOUBLE: ;
- /* case BSON_STRING: ; */
     case BSON_BOOL: ;
     case BSON_DATE:
+        break;
+    case BSON_STRING: 
+        if (ndims > 1) {
+            mexPrintf("Unable to convert array - Only 1 dimenisonal arrays of strings supported");
+            return 0;
+        }
         break;
     case BSON_OBJECT:
         if (_iterator_getComplex(&sub[ndims], &z))
@@ -653,7 +658,7 @@ EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i) {
         case BSON_INT: ;
         case BSON_LONG: ;
         case BSON_DOUBLE: ;
-/*      case BSON_STRING: ; */
+        case BSON_STRING: ; 
         case BSON_BOOL: ;
         case BSON_DATE: ;
 GotEl:  {
@@ -711,7 +716,7 @@ GotEl:  {
     case BSON_LONG:   ret = mxCreateNumericArray(ndims, mdim, mxINT64_CLASS, mxREAL); break;
     case BSON_DATE:
     case BSON_DOUBLE: ret = mxCreateNumericArray(ndims, mdim, mxDOUBLE_CLASS, mxREAL); break;
-/*  case BSON_STRING: */
+    case BSON_STRING: ret = mxCreateCellMatrix(len, 1); break;
     case BSON_BOOL:   ret = mxCreateLogicalArray(ndims, mdim); break;
     case BSON_OBJECT: ret = mxCreateNumericArray(ndims, mdim, mxDOUBLE_CLASS, mxCOMPLEX); break;
     default:
@@ -752,8 +757,6 @@ GotEl:  {
                 case BSON_LONG:
                     ((int64_t*)mxGetData(ret))[ofs] = bson_iterator_long(&sub[depth]);
                     break;
-                case BSON_STRING:
-                    break;
                 case BSON_BOOL: ;
                     ((mxLogical*)mxGetData(ret))[ofs] = bson_iterator_bool(&sub[depth]);
                     break;
@@ -761,6 +764,9 @@ GotEl:  {
                     _iterator_getComplex(&sub[depth], &z);
                     mxGetPr(ret)[ofs] = z.r;
                     mxGetPi(ret)[ofs] = z.i;
+                    break;
+                case BSON_STRING:
+                    mxSetCell(ret, count[depth]-1, mxCreateString(bson_iterator_string(&sub[depth])));
                     break;
                 default: ;
                     /* never reaches here */

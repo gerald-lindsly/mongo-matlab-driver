@@ -257,6 +257,9 @@ if mongo.isConnected
         clear cursor
     end
 
+    % get the distinct people names
+    distinct = mongo.distinct(people, 'name')
+
     % count the number of documents in 'test.people'
     num = mongo.count(people)
 

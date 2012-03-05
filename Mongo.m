@@ -41,7 +41,7 @@ classdef Mongo < handle
             end
 
             m.h = libpointer('mongo_Ptr');
-            calllib('MongoMatlabDriver', 'mongo_create', m.h)
+            calllib('MongoMatlabDriver', 'mmongo_create', m.h)
             if strcmp('replset', host)
                 calllib('MongoMatlabDriver', 'mmongo_replset_init', m.h, replset_name);
             else
@@ -87,7 +87,7 @@ classdef Mongo < handle
             if isNull(m.h)
                 b = false
             else
-                b = (calllib('MongoMatlabDriver', 'mongo_is_connected', m.h) ~= 0);
+                b = (calllib('MongoMatlabDriver', 'mmongo_is_connected', m.h) ~= 0);
             end
         end
 
@@ -118,12 +118,12 @@ classdef Mongo < handle
         function host = getPrimary(m)
             % host = mongo.getPrimary()  Get the host to which we are connected
             % as a host:port string.
-            host = calllib('MongoMatlabDriver', 'mongo_get_primary', m.h);
+            host = calllib('MongoMatlabDriver', 'mmongo_get_primary', m.h);
         end
 
         function socket = getSocket(m)
             % socket = getSocket(m)  Get the TCP/IP socket handle.
-            socket = calllib('MongoMatlabDriver', 'mongo_get_socket', m.h);
+            socket = calllib('MongoMatlabDriver', 'mmongo_get_socket', m.h);
         end
 
         function hosts = getHosts(m)
@@ -136,7 +136,7 @@ classdef Mongo < handle
             % err = mongo.getErr()  Get the error code of the connection
             % object as reported by the C driver.  This may be checked if an
             % operation failed.
-            err = calllib('MongoMatlabDriver', 'mongo_get_err', m.h);
+            err = calllib('MongoMatlabDriver', 'mmongo_get_err', m.h);
         end
 
         function databases = getDatabases(m)
@@ -394,6 +394,26 @@ classdef Mongo < handle
             end
         end
 
+        function keys = distinct(m, ns, key)
+            % keys = mongo.distinct(ns, key)  Get the distinct keys of a collection.
+            % The collection namespace (ns) is in the form 'database.collection'.
+            % key is a string naming the field for which to return distinct values.
+            pos = strfind(ns, '.');
+            if isempty(pos)
+                error('Mongo:distinct', 'Expected a ''.'' in the namespace');
+            end
+            db = substr(ns, 1, pos(1)-1);
+            collection = substr(ns, pos(1)+1, length(ns)-pos(1));
+            buf = BsonBuffer;
+            buf.append('distinct', collection);
+            buf.append('key', key);
+            cmd = buf.finish;
+            keys = m.command(db, cmd);
+            if ~isempty(keys)
+                keys = keys.value('values');
+            end
+        end
+
         function result = simpleCommand(m, db, cmdstr, arg)
             % result = mongo.simpleCommand(db, cmdstr, arg)  Issue a simple command
             % to the server which canbe specified by just a command string and an
@@ -433,12 +453,12 @@ classdef Mongo < handle
 
         function errNo = getServerErr(m)
             % errNo = mongo.getServerErr()  Get the server error code
-            errNo = calllib('MongoMatlabDriver', 'mongo_get_server_err', m.h);
+            errNo = calllib('MongoMatlabDriver', 'mmongo_get_server_err', m.h);
         end
 
         function errStr = getServerErrString(m)
             % errStr = mongo.getServerErrString()   Get a string decribing the error
-            errStr = calllib('MongoMatlabDriver', 'mongo_get_server_err_string', m.h);
+            errStr = calllib('MongoMatlabDriver', 'mmongo_get_server_err_string', m.h);
         end
 
         function ok = dropDatabase(m, db)

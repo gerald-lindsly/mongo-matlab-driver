@@ -18,46 +18,9 @@
 
 #include <mex.h>
 
-bson empty_bson;
+extern bson empty_bson;
 
-/* Initialize the socket services */
-int sock_init() {
-
-#if defined(_WIN32)
-    WSADATA wsaData;
-    WORD wVers;
-#elif defined(SIGPIPE)
-    struct sigaction act;
-#endif
-
-    static int called_once;
-    static int retval;
-    if (called_once) return retval;
-    called_once = 1;
-
-    bson_empty(&empty_bson);
-
-#if defined(_WIN32)
-    wVers = MAKEWORD(1, 1);
-    retval = (WSAStartup(wVers, &wsaData) == 0);
-#elif defined(MACINTOSH)
-    GUSISetup(GUSIwithInternetSockets);
-    retval = 1;
-#elif defined(SIGPIPE)
-    retval = 1;
-    if (sigaction(SIGPIPE, (struct sigaction *)NULL, &act) < 0)
-        retval = 0;
-    else if (act.sa_handler == SIG_DFL) {
-        act.sa_handler = SIG_IGN;
-        if (sigaction(SIGPIPE, &act, (struct sigaction *)NULL) < 0)
-            retval = 0;
-    }
-#endif
-    return retval;
-}
-
-
-EXPORT void mongo_create(struct mongo_** conn) {
+EXPORT void mmongo_create(struct mongo_** conn) {
     mongo* conn_; 
     conn_ = (mongo*)malloc(sizeof(mongo));
     mongo_init(conn_);
@@ -73,7 +36,7 @@ EXPORT void mmongo_connect(struct mongo_* conn, char* host) {
         mexPrintf("Unable to connect to %s:%d, error code = %d\n", hp.host, hp.port, conn_->err);
 }
 
-EXPORT int mongo_is_connected(struct mongo_* conn) {
+EXPORT int mmongo_is_connected(struct mongo_* conn) {
     mongo* conn_ = (mongo*)conn;
     return conn_->connected;
 }
@@ -141,20 +104,20 @@ EXPORT int mongo_get_timeout(struct mongo_* conn) {
 }
 
 
-const char* _get_host_port(mongo_host_port* hp) {
+const char* get_host_port_(mongo_host_port* hp) {
     static char _hp[sizeof(hp->host)+12];
     sprintf(_hp, "%s:%d", hp->host, hp->port);
     return _hp;
 }
 
 
-EXPORT const char* mongo_get_primary(struct mongo_* conn) {
+EXPORT const char* mmongo_get_primary(struct mongo_* conn) {
     mongo* conn_ = (mongo*)conn;
-    return _get_host_port(conn_->primary);
+    return get_host_port_(conn_->primary);
 }
 
 
-EXPORT int mongo_get_socket(struct mongo_* conn) {
+EXPORT int mmongo_get_socket(struct mongo_* conn) {
     mongo* conn_ = (mongo*)conn;
     return conn_->sock;
 }
@@ -172,13 +135,13 @@ EXPORT mxArray* mongo_get_hosts(struct mongo_* conn) {
         ++count;
     ret = mxCreateCellMatrix(count, 1);
     for (hp = r->hosts; hp; hp = hp->next, i++)
-        mxSetCell(ret, i++, mxCreateString(_get_host_port(hp)));
+        mxSetCell(ret, i++, mxCreateString(get_host_port_(hp)));
     return ret;
 }
 
 
 
-EXPORT int mongo_get_err(struct mongo_* conn) {
+EXPORT int mmongo_get_err(struct mongo_* conn) {
     mongo* conn_ = (mongo*)conn;
     return conn_->err;
 }
@@ -443,12 +406,12 @@ EXPORT int mongo_get_prev_err(struct mongo_* conn, char* db, struct bson_** err)
 }
 
 
-EXPORT int  mongo_get_server_err(struct mongo_* conn) {
+EXPORT int  mmongo_get_server_err(struct mongo_* conn) {
     return ((mongo*)conn)->lasterrcode;
 }
 
 
-EXPORT char*  mongo_get_server_err_string(struct mongo_* conn) {
+EXPORT char*  mmongo_get_server_err_string(struct mongo_* conn) {
     return ((mongo*)conn)->lasterrstr;
 }
 

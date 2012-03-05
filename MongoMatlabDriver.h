@@ -120,9 +120,9 @@ EXPORT void mongo_bson_iterator_code_scope(struct bson_iterator_* i, struct bson
 EXPORT int mongo_bson_iterator_timestamp(struct bson_iterator_* i, int* increment);
 EXPORT mxArray* mongo_bson_array_value(struct bson_iterator_* i);
 
-EXPORT void mongo_create(struct mongo_** conn);
+EXPORT void mmongo_create(struct mongo_** conn);
 EXPORT void mmongo_connect(struct mongo_* conn, char* host);
-EXPORT int  mongo_is_connected(struct mongo_* conn);
+EXPORT int  mmongo_is_connected(struct mongo_* conn);
 EXPORT int  mongo_is_master(struct mongo_* conn);
 EXPORT void mmongo_destroy(struct mongo_* conn);
 EXPORT void mmongo_replset_init(struct mongo_* conn, char* name);
@@ -133,10 +133,10 @@ EXPORT int  mmongo_reconnect(struct mongo_* conn);
 EXPORT int  mmongo_check_connection(struct mongo_* conn);
 EXPORT void mongo_set_timeout(struct mongo_* conn, int timeout);
 EXPORT int  mongo_get_timeout(struct mongo_* conn);
-EXPORT const char* mongo_get_primary(struct mongo_* conn);
-EXPORT int  mongo_get_socket(struct mongo_* conn);
+EXPORT const char* mmongo_get_primary(struct mongo_* conn);
+EXPORT int  mmongo_get_socket(struct mongo_* conn);
 EXPORT mxArray* mongo_get_hosts(struct mongo_* conn);
-EXPORT int  mongo_get_err(struct mongo_* conn);
+EXPORT int  mmongo_get_err(struct mongo_* conn);
 EXPORT mxArray* mongo_get_databases(struct mongo_* conn);
 EXPORT mxArray* mongo_get_database_collections(struct mongo_* conn, char* db);
 EXPORT int mongo_rename(struct mongo_* conn, char* from_ns, char* to_ns);
@@ -155,8 +155,8 @@ EXPORT int  mongo_authenticate(struct mongo_* conn, char* db, char* user, char* 
 EXPORT int  mongo_command(struct mongo_* conn, char* db, struct bson_* cmd, struct bson_** result);
 EXPORT int  mongo_get_last_err(struct mongo_* conn, char* db, struct bson_** err);
 EXPORT int  mongo_get_prev_err(struct mongo_* conn, char* db, struct bson_** err);
-EXPORT int  mongo_get_server_err(struct mongo_* conn);
-EXPORT char*  mongo_get_server_err_string(struct mongo_* conn);
+EXPORT int  mmongo_get_server_err(struct mongo_* conn);
+EXPORT char*  mmongo_get_server_err_string(struct mongo_* conn);
 EXPORT int  mongo_drop_database(struct mongo_* conn, char* db);
 EXPORT int  mongo_drop(struct mongo_* conn, char* ns);
 

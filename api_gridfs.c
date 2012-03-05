@@ -181,8 +181,8 @@ EXPORT void mongo_gridfile_get_descriptor(struct gridfile_* gf, struct bson_** o
 
 
 int mongo_gridfile_get_metadata(struct gridfile_* gf, struct bson_** out) {
-    bson meta = gridfile_get_metadata((gridfile*)gf);
-    bson* b;
+    bson meta, *b;
+    gridfile_get_metadata((gridfile*)gf, &meta);
     if (bson_size(&meta) <= 5)
         return 0;
     b = (bson*)malloc(sizeof(bson));
@@ -193,8 +193,8 @@ int mongo_gridfile_get_metadata(struct gridfile_* gf, struct bson_** out) {
 
 
 int mongo_gridfile_get_chunk(struct gridfile_* gf, int i, struct bson_** out) {
-    bson chunk = gridfile_get_chunk((gridfile*)gf, i);
-    bson* b;
+    bson chunk, *b;
+    gridfile_get_chunk((gridfile*)gf, i, &chunk);
     if (bson_size(&chunk) <= 5)
         return 0;
     b = (bson*)malloc(sizeof(bson));

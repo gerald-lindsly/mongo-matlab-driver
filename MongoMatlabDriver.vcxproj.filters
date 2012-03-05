@@ -123,15 +123,14 @@
     <None Include="Gridfile.m">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="README.md">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include=".gitignore">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="COPYRIGHT.txt" />
     <None Include="LICENSE.txt" />
     <None Include="MongoSample.m">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include=".gitignore" />
+    <None Include="README.md" />
+    <None Include="substr.m">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
