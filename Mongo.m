@@ -343,7 +343,7 @@ classdef Mongo < handle
             end
         end
 
-        function ok = addUser(m, user, password, varagin)
+        function ok = addUser(m, user, password, varargin)
             % ok = mongo.addUser(user, password, optional db='admin')  Add a user.
             % user and password are strings.
             % Optional db (string) defaults to 'admin'
@@ -358,7 +358,7 @@ classdef Mongo < handle
         end
 
 
-        function ok = authenticate(m, user, password, varagin)
+        function ok = authenticate(m, user, password, varargin)
             % ok = mongo.authenticate(user, password, optional db='admin')
             % Authenticate a user and password
             % Optional db (string) gives to the database to authenticate against.
