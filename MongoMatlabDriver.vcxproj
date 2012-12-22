@@ -224,21 +224,20 @@
     <ClCompile Include="bson.c" />
     <ClCompile Include="DllMain.c" />
     <ClCompile Include="encoding.c" />
+    <ClCompile Include="env.c" />
     <ClCompile Include="gridfs.c" />
     <ClCompile Include="md5.c" />
     <ClCompile Include="mongo.c" />
-    <ClCompile Include="net.c" />
     <ClCompile Include="numbers.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bson.h" />
     <ClInclude Include="encoding.h" />
+    <ClInclude Include="env.h" />
     <ClInclude Include="gridfs.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="mongo.h" />
     <ClInclude Include="MongoMatlabDriver.h" />
-    <ClInclude Include="net.h" />
-    <ClInclude Include="platform.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />

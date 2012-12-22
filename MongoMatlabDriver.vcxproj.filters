@@ -41,10 +41,10 @@
     <ClCompile Include="mongo.c">
       <Filter>mongo-c-driver-src</Filter>
     </ClCompile>
-    <ClCompile Include="net.c">
+    <ClCompile Include="numbers.c">
       <Filter>mongo-c-driver-src</Filter>
     </ClCompile>
-    <ClCompile Include="numbers.c">
+    <ClCompile Include="env.c">
       <Filter>mongo-c-driver-src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -67,10 +67,7 @@
     <ClInclude Include="mongo.h">
       <Filter>mongo-c-driver-src</Filter>
     </ClInclude>
-    <ClInclude Include="net.h">
-      <Filter>mongo-c-driver-src</Filter>
-    </ClInclude>
-    <ClInclude Include="platform.h">
+    <ClInclude Include="env.h">
       <Filter>mongo-c-driver-src</Filter>
     </ClInclude>
   </ItemGroup>

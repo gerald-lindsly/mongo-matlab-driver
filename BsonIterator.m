@@ -28,7 +28,7 @@ classdef BsonIterator < handle
         function t = type(i)
             % t = i.type()  Returns the type of the field pointed to by this iterator. See BsonType.
             if isempty(i.h) || isNull(i.h)
-                t = BsonType.EOO
+                t = BsonType.EOO;
             else
                 t = BsonType(calllib('MongoMatlabDriver', 'mongo_bson_iterator_type', i.h));
             end
@@ -44,7 +44,7 @@ classdef BsonIterator < handle
             %     display(i.value());
             % end
             if isempty(i.h) || isNull(i.h)
-                t = BsonType.EOO
+                t = BsonType.EOO;
             else
                 t = BsonType(calllib('MongoMatlabDriver', 'mongo_bson_iterator_next', i.h));
             end

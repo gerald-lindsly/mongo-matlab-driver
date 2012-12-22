@@ -14,7 +14,7 @@
  */
 #include "MongoMatlabDriver.h"
 #include "mongo.h"
-#include "net.h"
+#include "env.h"
 
 #include <mex.h>
 
@@ -32,7 +32,7 @@ EXPORT void mmongo_connect(struct mongo_* conn, char* host) {
     mongo* conn_ = (mongo*)conn;
     mongo_host_port hp;
     mongo_parse_host(host, &hp);
-    if (mongo_connect(conn_, hp.host, hp.port) != MONGO_OK)
+    if (mongo_client(conn_, hp.host, hp.port) != MONGO_OK)
         mexPrintf("Unable to connect to %s:%d, error code = %d\n", hp.host, hp.port, conn_->err);
 }
 
@@ -125,7 +125,7 @@ EXPORT int mmongo_get_socket(struct mongo_* conn) {
 
 EXPORT mxArray* mongo_get_hosts(struct mongo_* conn) {
     mongo* conn_ = (mongo*)conn;
-    mongo_replset* r = conn_->replset;
+    mongo_replica_set* r = conn_->replica_set;
     mxArray* ret;
     mongo_host_port* hp;
     int count = 0;
@@ -239,7 +239,7 @@ EXPORT int mongo_rename(struct mongo_* conn, char* from_ns, char* to_ns) {
 EXPORT int mmongo_insert(struct mongo_* conn, char* ns, struct bson_* b) {
     mongo* conn_ = (mongo*)conn;
     bson* b_ = (bson*)b;
-    return (mongo_insert(conn_, ns, b_) == MONGO_OK);
+    return (mongo_insert(conn_, ns, b_, 0) == MONGO_OK);
 }
 
 
@@ -247,14 +247,14 @@ EXPORT int mmongo_update(struct mongo_* conn, char* ns, struct bson_* criteria, 
     mongo* conn_ = (mongo*)conn;
     bson* criteria_ = (bson*) criteria;
     bson* objNew_ = (bson*) objNew;
-    return (mongo_update(conn_, ns, criteria_, objNew_, flags) == MONGO_OK);
+    return (mongo_update(conn_, ns, criteria_, objNew_, flags, 0) == MONGO_OK);
 }
 
 
 EXPORT int mmongo_remove(struct mongo_* conn, char* ns, struct bson_* criteria) {
     mongo* conn_ = (mongo*)conn;
     bson* criteria_ = (bson*)criteria;
-    return (mongo_remove(conn_, ns, criteria_) == MONGO_OK);
+    return (mongo_remove(conn_, ns, criteria_, 0) == MONGO_OK);
 }
 
 

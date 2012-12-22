@@ -1,6 +1,7 @@
 x64/
 Debug/
 Release/
+Release64/
 ipch/
 bson.c
 bson.h
@@ -12,11 +13,9 @@ md5.c
 md5.h
 mongo.c
 mongo.h
-net.c
-net.h
+env.c
+env.h
 numbers.c
-platform/
-platform.h
 MongoMatlabDriver.dll
 MongoMatlabDriver.exp
 MongoMatlabDriver.lib

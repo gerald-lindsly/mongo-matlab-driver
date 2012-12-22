@@ -35,7 +35,7 @@ typedef long long mxint64;
 
 #include <matrix.h>
 
-#include "platform.h"
+#include "bson.h"
 
 /* Define dummy structures for the interface with Matlab.
    Provides a level of abstraction and hides the details
