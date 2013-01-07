@@ -56,7 +56,7 @@ EXPORT void mmongo_destroy(struct mongo_* conn) {
 
 EXPORT void mmongo_replset_init(struct mongo_* conn, char* name) {
     mongo* conn_ = (mongo*)conn;
-    mongo_replset_init(conn_, name);
+    mongo_replica_set_init(conn_, name);
 }
 
 
@@ -64,13 +64,13 @@ EXPORT void mongo_add_seed(struct mongo_* conn, char* host) {
     mongo* conn_ = (mongo*)conn;
     mongo_host_port hp;
     mongo_parse_host(host, &hp);
-    mongo_replset_add_seed(conn_, hp.host, hp.port);
+    mongo_replica_set_add_seed(conn_, hp.host, hp.port);
 }
 
 
 EXPORT int  mmongo_replset_connect(struct mongo_* conn) {
     mongo* conn_ = (mongo*)conn;
-    return (mongo_replset_connect(conn_) == MONGO_OK);
+    return (mongo_replica_set_client(conn_) == MONGO_OK);
 }
 
 

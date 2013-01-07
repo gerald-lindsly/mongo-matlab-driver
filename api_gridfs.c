@@ -223,7 +223,7 @@ EXPORT int mongo_gridfile_read(struct gridfile_* gf, mxArray* data) {
         mexErrMsgTxt("Gridfile:read - only complex values of type double are supported");
     p = calcSize(data, &size);
     remaining = gridfile_get_contentlength(gf_) - gf_->pos;
-    if (size > remaining || cplx && size*2 > remaining)
+    if (size > remaining || (cplx && size*2 > remaining))
         return 0;
     if (size) gridfile_read(gf_, size, (char*)p);
     if (size && cplx)

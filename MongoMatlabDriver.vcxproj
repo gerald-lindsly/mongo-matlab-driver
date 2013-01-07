@@ -254,6 +254,7 @@
     <None Include="GridfileWriter.m" />
     <None Include="GridFS.m" />
     <None Include="LICENSE.txt" />
+    <None Include="makefile" />
     <None Include="Mongo.m" />
     <None Include="MongoCursor.m" />
     <None Include="MongoSample.m" />
